@@ -1,566 +1,549 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.2">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에스에듀 반포관 수강료 계산기 V8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .receipt-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
+        .info-list li { margin-bottom: 0.25rem; position: relative; padding-left: 1rem; }
+        .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; }
+        
+        /* 컨트롤 패널 달력 */
+        .calendar-grid div { height: 32px; line-height: 32px; font-size: 0.8rem; margin: 1px; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
+        .sun { color: #ef4444; }
+        .sat { color: #3b82f6; }
+        
+        .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
+        .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
+
+        /* 영수증 내부 미니 달력 (완벽한 동그라미 수정) */
+        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.6rem; }
+        /* 너비와 높이를 고정하고 margin auto로 중앙 정렬 */
+        .mini-cal-cell { width: 18px; height: 18px; line-height: 18px; border-radius: 50%; margin: 0 auto; }
+        .mini-active { background-color: #004094; color: white; font-weight: bold; }
+
+        #pasteAreaContainer { transition: all 0.3s ease; }
+    </style>
 </head>
-<body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="ko"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;에스에듀 반포관 수강료 계산기 V8&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&amp;display=swap');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body { font-family: 'Noto Sans KR', sans-serif; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.receipt-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.info-list li { margin-bottom: 0.25rem; position: relative; padding-left: 1rem; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* 컨트롤 패널 달력 */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.calendar-grid div { height: 32px; line-height: 32px; font-size: 0.8rem; margin: 1px; border-radius: 50%; transition: all 0.2s; cursor: pointer; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.sun { color: #ef4444; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.sat { color: #3b82f6; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* 영수증 내부 미니 달력 (완벽한 동그라미 수정) */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.6rem; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* 너비와 높이를 고정하고 margin auto로 중앙 정렬 */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.mini-cal-cell { width: 18px; height: 18px; line-height: 18px; border-radius: 50%; margin: 0 auto; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.mini-active { background-color: #004094; color: white; font-weight: bold; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>#pasteAreaContainer { transition: all 0.3s ease; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body class="bg-gray-100 p-4 lg:p-8"&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8"&gt;</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="lg:col-span-6 space-y-6"&gt;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white p-6 rounded-lg shadow-md"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>📅 기본 설정 &amp; 휴강 관리</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="grid grid-cols-12 gap-4 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="col-span-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;학생 이름&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="studentName" placeholder="홍길동" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-900" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="col-span-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;연도&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="number" id="targetYear" value="2025" class="w-full p-2 border rounded text-center" onchange="resetAndUpdate()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="col-span-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;월&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="relative"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="number" id="targetMonth" value="12" min="1" max="12" class="w-full p-2 border rounded text-center" onchange="resetAndUpdate()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;span class="absolute right-8 top-2 text-gray-500"&gt;월&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white border-2 border-indigo-50 rounded-lg p-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between items-center mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span id="calTitle" class="text-indigo-900 text-sm font-bold"&gt;2025년 12월 제외일 설정&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-[10px] text-red-500 bg-red-50 px-2 py-1 rounded"&gt;* 날짜 클릭 = 휴강(제외)&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="grid grid-cols-7 text-center text-xs border-b pb-2 mb-2 font-bold text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="sun"&gt;일&lt;/div&gt;&lt;div&gt;월&lt;/div&gt;&lt;div&gt;화&lt;/div&gt;&lt;div&gt;수&lt;/div&gt;&lt;div&gt;목&lt;/div&gt;&lt;div&gt;금&lt;/div&gt;&lt;div class="sat"&gt;토&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="calendarGrid" class="grid grid-cols-7 text-center text-xs calendar-grid text-gray-400"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 shadow-sm"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex justify-between items-center cursor-pointer" onclick="togglePasteArea()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-sm font-bold text-[#004094] flex items-center gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>📋 Access/엑셀 '반명' 붙여넣기</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-[10px] bg-white border px-2 py-0.5 rounded text-gray-500 font-normal"&gt;여기를 클릭하세요&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/h3&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span id="pasteIcon" class="text-blue-500 transform transition"&gt;▼&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div id="pasteAreaContainer" class="hidden mt-3"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;textarea id="smartPasteInput" class="w-full h-20 text-xs p-2 border rounded focus:outline-none focus:border-blue-500" placeholder="Access나 엑셀에서 '반명' 셀들을 복사해서 여기에 붙여넣으세요.&amp;#13;&amp;#10;예: 수학-1:1(박은채)-2h&amp;#13;&amp;#10;예: 영어-개별-1.5h"&gt;&lt;/textarea&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="processSmartPaste()" class="w-full mt-2 py-1.5 bg-[#004094] text-white text-xs font-bold rounded hover:bg-blue-800 transition"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>⚡ 분석하여 목록에 추가하기</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-[10px] text-gray-500 mt-1"&gt;* 현재 선택된 탭(자동/수동)에 맞춰 추가됩니다. 시간(2h)이 있으면 자동 입력됩니다.&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white rounded-lg shadow-md overflow-hidden"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex border-b"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>🤖 요일 고정형</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>🖐️ 변동형 (횟수입력)</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="p-6 bg-gray-50 min-h-[300px]"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="tab-auto" class="block"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div id="autoList" class="space-y-4"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onclick="addAutoRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition"&gt;+ 고정 과목 추가&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="tab-manual" class="hidden"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div id="manualList" class="space-y-3"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onclick="addManualRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition"&gt;+ 과목 행 추가&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="p-4 bg-indigo-50 border-t flex items-center gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="checkbox" id="showReceiptCal" class="w-4 h-4 text-indigo-600 rounded" onchange="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none"&gt;🧾 영수증에 '수업 인정일 달력' 포함&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="p-4 bg-white border-t"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex items-center justify-between"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label class="text-sm font-bold text-gray-700"&gt;지난달 이월/초과금 (+/-)&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="number" id="adjustment" value="0" class="w-48 p-2 border rounded text-right font-mono" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-blue-50 p-4 rounded-lg border border-blue-200"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex justify-between items-center mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-sm font-bold text-[#004094]"&gt;📊 엑셀/DB 입력용 데이터 생성&lt;/h3&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="copyToClipboard()" class="text-xs bg-[#004094] text-white px-3 py-1 rounded hover:bg-blue-800"&gt;📋 결과 복사&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;textarea id="exportData" class="w-full h-24 text-xs font-mono p-2 border rounded bg-white text-gray-600 resize-none focus:outline-none" readonly&gt;&lt;/textarea&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="lg:col-span-6 flex flex-col items-center"&gt;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="w-full max-w-md mb-2 text-right"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;details class="text-xs text-gray-400 cursor-pointer"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;summary&gt;로고 설정&lt;/summary&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="mt-2 p-2 bg-white border rounded shadow-lg absolute z-10 w-64 right-0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="logoUrlInput" class="w-full border p-1 rounded mb-1" placeholder="이미지 주소 입력" oninput="updateLogoFromInput()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/details&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="captureArea" class="bg-white p-8 w-full max-w-md receipt-shadow relative border-t-8 border-[#004094] mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="text-center mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;img id="logoImg" src="https://drive.google.com/uc?export=view&amp;id=1juBk9tFJ5JdhJa8B72iF9YhOzvUTUcwY"<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                         </span>onerror="this.onerror=null; this.src='https://placehold.co/200x80/004094/ffffff?text=S-EDU';"<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                         </span>alt="에스에듀 로고" class="h-16 mx-auto mb-2 object-contain"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h1 class="text-2xl font-bold text-[#004094] mb-1"&gt;에스에듀 반포관&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500"&gt;수강료 안내서&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex justify-between items-end border-b-2 border-gray-800 pb-2 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-sm text-gray-500"&gt;학생명&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h3 class="text-xl font-bold" id="dispName"&gt;학생명&lt;/h3&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="bg-[#004094] text-white px-3 py-1 text-sm rounded-full font-bold" id="dispDate"&gt;2025년 12월분&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;table class="w-full text-sm mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;tr class="text-gray-500 border-b"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="text-left py-2"&gt;과목 / 상세 내용&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="text-right py-2"&gt;금액&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;tbody id="receiptBody"&gt;&lt;/tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/table&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div id="receiptCalendarArea" class="hidden mb-6 border rounded p-3 bg-gray-50"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="text-center text-xs font-bold text-[#004094] mb-2"&gt;📅 수업 인정일 확인&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;일&lt;/div&gt;&lt;div&gt;월&lt;/div&gt;&lt;div&gt;화&lt;/div&gt;&lt;div&gt;수&lt;/div&gt;&lt;div&gt;목&lt;/div&gt;&lt;div&gt;금&lt;/div&gt;&lt;div&gt;토&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="receiptMiniCalGrid" class="mini-cal-grid text-gray-300"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="border-t border-gray-200 pt-4 space-y-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between text-gray-600"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span&gt;수강료 소계&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span id="dispSubtotal" class="font-bold"&gt;0&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between text-red-500" id="dispAdjRow"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span&gt;이월/초과금 조정&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span id="dispAdj" class="font-bold"&gt;0&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="mt-4 pt-4 border-t-2 border-gray-800 flex justify-between items-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span class="text-lg font-bold"&gt;최종 납부액&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span class="text-3xl font-bold text-[#004094]" id="dispTotal"&gt;0원&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="mt-6 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 bg-gray-50 p-4 rounded"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h4 class="font-bold text-[#004094] mb-2"&gt;※ 수강료 및 수업 안내 ※&lt;/h4&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;ul class="info-list space-y-1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;li&gt;'회당' 가격은 &lt;b&gt;시간당 가격&lt;/b&gt;이며, '횟수'는 &lt;b&gt;한 달 총 수강 시간&lt;/b&gt;입니다.&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;li&gt;&lt;b&gt;수업 취소:&lt;/b&gt; 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;li&gt;&lt;b&gt;보충 안내:&lt;/b&gt; 취소된 수업 기준 2주 안에 보충 진행합니다. (1:1 수업 당일 취소 건 포함)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;li&gt;&lt;b&gt;결제 방법:&lt;/b&gt; '결제링크'를 통한 카드 분할 결제, 서울페이/제로페이, 계좌이체 가능합니다.&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/ul&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="mt-6 text-center text-sm font-bold text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p&gt;문의사항 : 010-4232-7428&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button onclick="downloadImage()" class="w-full max-w-md py-3 bg-[#004094] text-white font-bold rounded shadow hover:bg-blue-800 transition flex justify-center items-center gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>📸 학부모 전송용 이미지 저장</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let currentTab = 'auto';<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let excludedDates = new Set();<span class="Apple-converted-space"> </span></p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>addAutoRow();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>updateDateContext();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function switchTab(tab) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>currentTab = tab;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('tab-manual').className = tab === 'manual' ? 'block' : 'hidden';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('tab-auto').className = tab === 'auto' ? 'block' : 'hidden';</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const btnM = document.getElementById('btn-manual');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const btnA = document.getElementById('btn-auto');</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if(tab === 'manual') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>btnM.className = "flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>btnA.className = "flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>btnA.className = "flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>btnM.className = "flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>recalcAllAutoCounts();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function togglePasteArea() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const area = document.getElementById('pasteAreaContainer');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const icon = document.getElementById('pasteIcon');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (area.classList.contains('hidden')) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>area.classList.remove('hidden');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>icon.style.transform = "rotate(180deg)";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>area.classList.add('hidden');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>icon.style.transform = "rotate(0deg)";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function processSmartPaste() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const rawText = document.getElementById('smartPasteInput').value;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!rawText.trim()) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const lines = rawText.split('\n');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>lines.forEach(line =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>line = line.trim();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (!line) return;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let detectedTime = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let cleanName = line;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (timeMatch) detectedTime = parseFloat(timeMatch[1]);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (currentTab === 'manual') addManualRow(cleanName, detectedTime);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>else addAutoRow(cleanName);<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('smartPasteInput').value = '';<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>alert(`${lines.length}개의 과목이 추가되었습니다.`);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function updateLogoFromInput() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const url = document.getElementById('logoUrlInput').value;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if(url) document.getElementById('logoImg').src = url;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function resetAndUpdate() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>excludedDates.clear();<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateDateContext();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>// [핵심 수정] updateAll()을 마지막에 호출하여 금액 재계산 트리거</p>
-<p class="p1"><span class="Apple-converted-space">        </span>function updateDateContext() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>recalcAllAutoCounts(); // 1. 횟수 계산</p>
-<p class="p1"><span class="Apple-converted-space">            </span>renderCalendar();<span class="Apple-converted-space">      </span>// 2. 달력 그리기</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll(); <span class="Apple-converted-space">          </span>// 3. 금액 합계 및 영수증 갱신 (여기서 renderReceiptCalendar도 호출됨)</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function toggleDateExclusion(day) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if(excludedDates.has(day)) excludedDates.delete(day);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>else excludedDates.add(day);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateDateContext(); // 클릭 시 모든 컨텍스트 업데이트</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function renderCalendar() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const year = parseInt(document.getElementById('targetYear').value) || 2025;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const month = parseInt(document.getElementById('targetMonth').value) || 12;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('calTitle').innerText = `${year}년 ${month}월 제외일 설정`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const calDiv = document.getElementById('calendarGrid');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>calDiv.innerHTML = '';<span class="Apple-converted-space"> </span></p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const firstDay = new Date(year, month - 1, 1).getDay();<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const lastDate = new Date(year, month, 0).getDate();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const activeWeekdays = new Set();</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentTab === 'auto') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.day-chk:checked').forEach(box =&gt; activeWeekdays.add(parseInt(box.value)));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;firstDay; i++) calDiv.innerHTML += `&lt;div&gt;&lt;/div&gt;`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=1; i&lt;=lastDate; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const date = new Date(year, month - 1, i);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const dayOfWeek = date.getDay();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let div = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.innerText = i;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.className = "hover:bg-gray-200 ";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>const isExcluded = excludedDates.has(i);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const isActiveDay = activeWeekdays.has(dayOfWeek);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (isExcluded) div.className += "excluded-day";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>else if (isActiveDay) div.className += "highlight-day";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if(dayOfWeek === 0) div.className += "sun ";</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if(dayOfWeek === 6) div.className += "sat ";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.onclick = () =&gt; toggleDateExclusion(i);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>calDiv.appendChild(div);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function renderReceiptCalendar() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const container = document.getElementById('receiptCalendarArea');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const showCal = document.getElementById('showReceiptCal').checked;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if(!showCal) { container.classList.add('hidden'); return; }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>container.classList.remove('hidden');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const year = parseInt(document.getElementById('targetYear').value);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const month = parseInt(document.getElementById('targetMonth').value);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const calDiv = document.getElementById('receiptMiniCalGrid');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>calDiv.innerHTML = '';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const firstDay = new Date(year, month - 1, 1).getDay();<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const lastDate = new Date(year, month, 0).getDate();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const activeWeekdays = new Set();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentTab === 'auto') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.day-chk:checked').forEach(box =&gt; activeWeekdays.add(parseInt(box.value)));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;firstDay; i++) calDiv.innerHTML += `&lt;div&gt;&lt;/div&gt;`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=1; i&lt;=lastDate; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const dayOfWeek = new Date(year, month - 1, i).getDay();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let div = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.innerText = i;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.className = "mini-cal-cell "; // 스타일 변경된 클래스 적용</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (activeWeekdays.has(dayOfWeek) &amp;&amp; !excludedDates.has(i)) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>div.className += "mini-active";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>calDiv.appendChild(div);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function addManualRow(nameVal = '', timeVal = '') {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const id = Date.now() + Math.random();<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const html = `</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white p-3 border rounded shadow-sm relative group manual-row" id="mrow-${id}"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="removeEl('mrow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500"&gt;✖&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" class="sub-name w-full text-sm font-bold border-b p-1 focus:outline-none focus:border-blue-500" placeholder="과목명" value="${nameVal}" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex items-center gap-2 text-sm"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="flex-1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label class="block text-[10px] text-gray-400"&gt;1회당 시간&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="number" class="sub-time w-full p-1 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="pt-4"&gt;h ×&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="flex-1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label class="block text-[10px] text-gray-400"&gt;월 횟수&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="number" class="sub-count w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="pt-4"&gt;회 ×&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="flex-[1.5]"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label class="block text-[10px] text-gray-400"&gt;시간당 금액&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="number" class="sub-rate w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="pt-4"&gt;원&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('manualList').insertAdjacentHTML('beforeend', html);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function addAutoRow(nameVal = '') {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const id = Date.now() + Math.random();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const html = `</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white p-3 border rounded shadow-sm relative group auto-row" id="arow-${id}"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onclick="removeEl('arow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500"&gt;✖&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" class="sub-name w-full text-sm font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${nameVal}" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between mb-3 px-1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>${['일','월','화','수','목','금','토'].map((d, i) =&gt; `</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="checkbox" id="d-${id}-${i}" value="${i}" class="day-chk hidden" onchange="updateDateContext()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="d-${id}-${i}" class="block w-8 h-8 rounded-full border text-center leading-8 text-xs cursor-pointer select-none text-gray-500 hover:bg-gray-100 transition"&gt;${d}&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>`).join('')}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex gap-2 bg-blue-50 p-2 rounded items-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-xs font-bold text-[#004094]"&gt;자동:&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="cnt-${id}" class="sub-count w-10 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-xs"&gt;회(주) ×&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="number" class="sub-rate w-20 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="self-center text-xs"&gt;원&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('autoList').insertAdjacentHTML('beforeend', html);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function removeEl(id) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById(id).remove();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateAll();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function recalcRow(rowIdSuffix) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const year = parseInt(document.getElementById('targetYear').value);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const month = parseInt(document.getElementById('targetMonth').value);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const selectedDays = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;7; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if(document.getElementById(`d-${rowIdSuffix}-${i}`).checked) selectedDays.push(i);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let count = 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const date = new Date(year, month - 1, 1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>while (date.getMonth() === month - 1) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const currentDay = date.getDate();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (selectedDays.includes(date.getDay()) &amp;&amp; !excludedDates.has(currentDay)) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>count++;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>date.setDate(currentDay + 1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById(`cnt-${rowIdSuffix}`).value = count;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function recalcAllAutoCounts() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.auto-row').forEach(row =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const id = row.id.replace('arow-', '');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>recalcRow(id);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>// 여기선 render 호출 안함. updateAll()에서 일괄 처리</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function updateAll() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const name = document.getElementById('studentName').value || '학생명';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const year = document.getElementById('targetYear').value;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const month = document.getElementById('targetMonth').value;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('dispName').innerText = name;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>renderReceiptCalendar();<span class="Apple-converted-space"> </span></p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const tbody = document.getElementById('receiptBody');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>tbody.innerHTML = '';</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let subtotal = 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let exportText = `이름\t년\t월\t과목명\t상세내용\t단가\t금액\n`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentTab === 'auto') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('#autoList .auto-row').forEach(row =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const subjectRaw = row.querySelector('.sub-name').value;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const count = parseFloat(row.querySelector('.sub-count').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (subjectRaw || count &gt; 0) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const rowTotal = count * rate;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>subtotal += rowTotal;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const parts = subjectRaw.split('-');</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const subjName = parts[0] || subjectRaw;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const details = parts.slice(1).join(' / ');</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>let subjectDisplay = `&lt;div class="font-bold text-gray-800"&gt;${subjName}&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>if (details) subjectDisplay += `&lt;div class="text-xs text-[#004094] mt-1"&gt;${details}&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>tbody.innerHTML += `</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;tr class="border-b border-dashed border-gray-200"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;td class="py-3 pr-2"&gt;${subjectDisplay}&lt;div class="text-xs text-gray-500 mt-1"&gt;${count}회(주) × ${rate.toLocaleString()}원&lt;/div&gt;&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;td class="py-3 text-right font-mono text-lg font-bold text-gray-700"&gt;${rowTotal.toLocaleString()}원&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/tr&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>exportText += `${name}\t${year}\t${month}\t${subjectRaw}\t${count}회\t${rate}\t${rowTotal}\n`;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('#manualList .manual-row').forEach(row =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const subject = row.querySelector('.sub-name').value;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const time = parseFloat(row.querySelector('.sub-time').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const count = parseFloat(row.querySelector('.sub-count').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (subject || (time &gt; 0 &amp;&amp; count &gt; 0)) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const rowTotal = time * count * rate;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>subtotal += rowTotal;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>tbody.innerHTML += `</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;tr class="border-b border-dashed border-gray-200"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;td class="py-3 pr-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div class="font-bold text-gray-800"&gt;${subject}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div class="text-xs text-gray-500 mt-1"&gt;${time}시간 × ${count}회 × ${rate.toLocaleString()}원&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;td class="py-3 text-right font-mono text-lg font-bold text-gray-700"&gt;${rowTotal.toLocaleString()}원&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/tr&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>exportText += `${name}\t${year}\t${month}\t${subject}\t${time}h*${count}회\t${rate}\t${rowTotal}\n`;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const adj = parseFloat(document.getElementById('adjustment').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const total = subtotal + adj;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const adjEl = document.getElementById('dispAdj');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>adjEl.innerText = (adj &gt; 0 ? '+' : '') + adj.toLocaleString() + '원';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj &gt; 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('exportData').value = exportText;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function copyToClipboard() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const copyText = document.getElementById("exportData");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>copyText.select();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>copyText.setSelectionRange(0, 99999);<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>navigator.clipboard.writeText(copyText.value).then(() =&gt; alert("복사되었습니다."));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function downloadImage() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const captureElement = document.getElementById("captureArea");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>html2canvas(captureElement, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const link = document.createElement("a");</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const name = document.getElementById('studentName').value || '학생';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const month = document.getElementById('targetMonth').value;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>link.download = `수강료_${name}_${month}월_에스에듀.png`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>link.href = canvas.toDataURL('image/png');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>link.click();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+<body class="bg-gray-100 p-4 lg:p-8">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-6 space-y-6">
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+                    📅 기본 설정 & 휴강 관리
+                </h2>
+                <div class="grid grid-cols-12 gap-4 mb-4">
+                    <div class="col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">학생 이름</label>
+                        <input type="text" id="studentName" placeholder="홍길동" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-900" oninput="updateAll()">
+                    </div>
+                    <div class="col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">연도</label>
+                        <input type="number" id="targetYear" value="2025" class="w-full p-2 border rounded text-center" onchange="resetAndUpdate()">
+                    </div>
+                    <div class="col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">월</label>
+                        <div class="relative">
+                            <input type="number" id="targetMonth" value="12" min="1" max="12" class="w-full p-2 border rounded text-center" onchange="resetAndUpdate()">
+                            <span class="absolute right-8 top-2 text-gray-500">월</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-indigo-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="calTitle" class="text-indigo-900 text-sm font-bold">2025년 12월 제외일 설정</span>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-1 rounded">* 날짜 클릭 = 휴강(제외)</span>
+                    </div>
+                    <div class="grid grid-cols-7 text-center text-xs border-b pb-2 mb-2 font-bold text-gray-500">
+                        <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 text-center text-xs calendar-grid text-gray-400"></div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 shadow-sm">
+                <div class="flex justify-between items-center cursor-pointer" onclick="togglePasteArea()">
+                    <h3 class="text-sm font-bold text-[#004094] flex items-center gap-2">
+                        📋 Access/엑셀 '반명' 붙여넣기
+                        <span class="text-[10px] bg-white border px-2 py-0.5 rounded text-gray-500 font-normal">여기를 클릭하세요</span>
+                    </h3>
+                    <span id="pasteIcon" class="text-blue-500 transform transition">▼</span>
+                </div>
+                <div id="pasteAreaContainer" class="hidden mt-3">
+                    <textarea id="smartPasteInput" class="w-full h-20 text-xs p-2 border rounded focus:outline-none focus:border-blue-500" placeholder="Access나 엑셀에서 '반명' 셀들을 복사해서 여기에 붙여넣으세요.&#13;&#10;예: 수학-1:1(박은채)-2h&#13;&#10;예: 영어-개별-1.5h"></textarea>
+                    <button onclick="processSmartPaste()" class="w-full mt-2 py-1.5 bg-[#004094] text-white text-xs font-bold rounded hover:bg-blue-800 transition">
+                        ⚡ 분석하여 목록에 추가하기
+                    </button>
+                    <p class="text-[10px] text-gray-500 mt-1">* 현재 선택된 탭(자동/수동)에 맞춰 추가됩니다. 시간(2h)이 있으면 자동 입력됩니다.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="flex border-b">
+                    <button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition">
+                        🤖 요일 고정형
+                    </button>
+                    <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition">
+                        🖐️ 변동형 (횟수입력)
+                    </button>
+                </div>
+
+                <div class="p-6 bg-gray-50 min-h-[300px]">
+                    <div id="tab-auto" class="block">
+                        <div id="autoList" class="space-y-4"></div>
+                        <button onclick="addAutoRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition">+ 고정 과목 추가</button>
+                    </div>
+
+                    <div id="tab-manual" class="hidden">
+                        <div id="manualList" class="space-y-3"></div>
+                        <button onclick="addManualRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition">+ 과목 행 추가</button>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-indigo-50 border-t flex items-center gap-2">
+                    <input type="checkbox" id="showReceiptCal" class="w-4 h-4 text-indigo-600 rounded" onchange="updateAll()">
+                    <label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none">🧾 영수증에 '수업 인정일 달력' 포함</label>
+                </div>
+
+                <div class="p-4 bg-white border-t">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-bold text-gray-700">지난달 이월/초과금 (+/-)</label>
+                        <input type="number" id="adjustment" value="0" class="w-48 p-2 border rounded text-right font-mono" oninput="updateAll()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-[#004094]">📊 엑셀/DB 입력용 데이터 생성</h3>
+                    <button onclick="copyToClipboard()" class="text-xs bg-[#004094] text-white px-3 py-1 rounded hover:bg-blue-800">📋 결과 복사</button>
+                </div>
+                <textarea id="exportData" class="w-full h-24 text-xs font-mono p-2 border rounded bg-white text-gray-600 resize-none focus:outline-none" readonly></textarea>
+            </div>
+        </div>
+
+        <div class="lg:col-span-6 flex flex-col items-center">
+            
+            <div class="w-full max-w-md mb-2 text-right">
+                <details class="text-xs text-gray-400 cursor-pointer">
+                    <summary>로고 설정</summary>
+                    <div class="mt-2 p-2 bg-white border rounded shadow-lg absolute z-10 w-64 right-0">
+                        <input type="text" id="logoUrlInput" class="w-full border p-1 rounded mb-1" placeholder="이미지 주소 입력" oninput="updateLogoFromInput()">
+                    </div>
+                </details>
+            </div>
+
+            <div id="captureArea" class="bg-white p-8 w-full max-w-md receipt-shadow relative border-t-8 border-[#004094] mb-6">
+                <div class="text-center mb-6">
+                    <img id="logoImg" src="https://drive.google.com/uc?export=view&id=1juBk9tFJ5JdhJa8B72iF9YhOzvUTUcwY" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/200x80/004094/ffffff?text=S-EDU';" 
+                         alt="에스에듀 로고" class="h-16 mx-auto mb-2 object-contain">
+                    <h1 class="text-2xl font-bold text-[#004094] mb-1">에스에듀 반포관</h1>
+                    <p class="text-sm text-gray-500">수강료 안내서</p>
+                </div>
+
+                <div class="flex justify-between items-end border-b-2 border-gray-800 pb-2 mb-4">
+                    <div>
+                        <span class="text-sm text-gray-500">학생명</span>
+                        <h3 class="text-xl font-bold" id="dispName">학생명</h3>
+                    </div>
+                    <div>
+                        <span class="bg-[#004094] text-white px-3 py-1 text-sm rounded-full font-bold" id="dispDate">2025년 12월분</span>
+                    </div>
+                </div>
+
+                <table class="w-full text-sm mb-6">
+                    <thead>
+                        <tr class="text-gray-500 border-b">
+                            <th class="text-left py-2">과목 / 상세 내용</th>
+                            <th class="text-right py-2">금액</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptBody"></tbody>
+                </table>
+
+                <div id="receiptCalendarArea" class="hidden mb-6 border rounded p-3 bg-gray-50">
+                    <div class="text-center text-xs font-bold text-[#004094] mb-2">📅 수업 인정일 확인</div>
+                    <div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
+                        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+                    </div>
+                    <div id="receiptMiniCalGrid" class="mini-cal-grid text-gray-300"></div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 space-y-2">
+                    <div class="flex justify-between text-gray-600">
+                        <span>수강료 소계</span>
+                        <span id="dispSubtotal" class="font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between text-red-500" id="dispAdjRow">
+                        <span>이월/초과금 조정</span>
+                        <span id="dispAdj" class="font-bold">0</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t-2 border-gray-800 flex justify-between items-center">
+                    <span class="text-lg font-bold">최종 납부액</span>
+                    <span class="text-3xl font-bold text-[#004094]" id="dispTotal">0원</span>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 bg-gray-50 p-4 rounded">
+                    <h4 class="font-bold text-[#004094] mb-2">※ 수강료 및 수업 안내 ※</h4>
+                    <ul class="info-list space-y-1">
+                        <li>'회당' 가격은 <b>시간당 가격</b>이며, '횟수'는 <b>한 달 총 수강 시간</b>입니다.</li>
+                        <li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li>
+                        <li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다. (1:1 수업 당일 취소 건 포함)</li>
+                        <li><b>결제 방법:</b> '결제링크'를 통한 카드 분할 결제, 서울페이/제로페이, 계좌이체 가능합니다.</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-6 text-center text-sm font-bold text-gray-500">
+                    <p>문의사항 : 010-4232-7428</p>
+                </div>
+            </div>
+
+            <button onclick="downloadImage()" class="w-full max-w-md py-3 bg-[#004094] text-white font-bold rounded shadow hover:bg-blue-800 transition flex justify-center items-center gap-2">
+                📸 학부모 전송용 이미지 저장
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'auto'; 
+        let excludedDates = new Set(); 
+
+        addAutoRow();
+        updateDateContext();
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-manual').className = tab === 'manual' ? 'block' : 'hidden';
+            document.getElementById('tab-auto').className = tab === 'auto' ? 'block' : 'hidden';
+            
+            const btnM = document.getElementById('btn-manual');
+            const btnA = document.getElementById('btn-auto');
+            
+            if(tab === 'manual') {
+                btnM.className = "flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition";
+                btnA.className = "flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition";
+            } else {
+                btnA.className = "flex-1 py-3 font-bold text-center bg-blue-50 text-[#004094] border-b-2 border-[#004094] transition";
+                btnM.className = "flex-1 py-3 font-bold text-center text-gray-500 hover:bg-gray-50 transition";
+                recalcAllAutoCounts();
+            }
+            updateAll();
+        }
+
+        function togglePasteArea() {
+            const area = document.getElementById('pasteAreaContainer');
+            const icon = document.getElementById('pasteIcon');
+            if (area.classList.contains('hidden')) {
+                area.classList.remove('hidden');
+                icon.style.transform = "rotate(180deg)";
+            } else {
+                area.classList.add('hidden');
+                icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function processSmartPaste() {
+            const rawText = document.getElementById('smartPasteInput').value;
+            if (!rawText.trim()) return;
+            const lines = rawText.split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                let detectedTime = 0;
+                let cleanName = line;
+                const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i);
+                if (timeMatch) detectedTime = parseFloat(timeMatch[1]);
+                if (currentTab === 'manual') addManualRow(cleanName, detectedTime);
+                else addAutoRow(cleanName); 
+            });
+            document.getElementById('smartPasteInput').value = ''; 
+            alert(`${lines.length}개의 과목이 추가되었습니다.`);
+            updateAll();
+        }
+
+        function updateLogoFromInput() {
+            const url = document.getElementById('logoUrlInput').value;
+            if(url) document.getElementById('logoImg').src = url;
+        }
+
+        function resetAndUpdate() {
+            excludedDates.clear(); 
+            updateDateContext();
+        }
+
+        // [핵심 수정] updateAll()을 마지막에 호출하여 금액 재계산 트리거
+        function updateDateContext() {
+            recalcAllAutoCounts(); // 1. 횟수 계산
+            renderCalendar();      // 2. 달력 그리기
+            updateAll();           // 3. 금액 합계 및 영수증 갱신 (여기서 renderReceiptCalendar도 호출됨)
+        }
+
+        function toggleDateExclusion(day) {
+            if(excludedDates.has(day)) excludedDates.delete(day);
+            else excludedDates.add(day);
+            updateDateContext(); // 클릭 시 모든 컨텍스트 업데이트
+        }
+
+        function renderCalendar() {
+            const year = parseInt(document.getElementById('targetYear').value) || 2025;
+            const month = parseInt(document.getElementById('targetMonth').value) || 12;
+            document.getElementById('calTitle').innerText = `${year}년 ${month}월 제외일 설정`;
+            const calDiv = document.getElementById('calendarGrid');
+            calDiv.innerHTML = ''; 
+
+            const firstDay = new Date(year, month - 1, 1).getDay(); 
+            const lastDate = new Date(year, month, 0).getDate();
+            const activeWeekdays = new Set();
+            
+            if (currentTab === 'auto') {
+                document.querySelectorAll('.day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
+            }
+
+            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
+
+            for(let i=1; i<=lastDate; i++) {
+                const date = new Date(year, month - 1, i);
+                const dayOfWeek = date.getDay();
+                let div = document.createElement('div');
+                div.innerText = i;
+                div.className = "hover:bg-gray-200 ";
+
+                const isExcluded = excludedDates.has(i);
+                const isActiveDay = activeWeekdays.has(dayOfWeek);
+
+                if (isExcluded) div.className += "excluded-day";
+                else if (isActiveDay) div.className += "highlight-day";
+                else {
+                    if(dayOfWeek === 0) div.className += "sun ";
+                    if(dayOfWeek === 6) div.className += "sat ";
+                }
+                div.onclick = () => toggleDateExclusion(i);
+                calDiv.appendChild(div);
+            }
+        }
+
+        function renderReceiptCalendar() {
+            const container = document.getElementById('receiptCalendarArea');
+            const showCal = document.getElementById('showReceiptCal').checked;
+            if(!showCal) { container.classList.add('hidden'); return; }
+            container.classList.remove('hidden');
+
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            const calDiv = document.getElementById('receiptMiniCalGrid');
+            calDiv.innerHTML = '';
+
+            const firstDay = new Date(year, month - 1, 1).getDay(); 
+            const lastDate = new Date(year, month, 0).getDate();
+            const activeWeekdays = new Set();
+            if (currentTab === 'auto') {
+                document.querySelectorAll('.day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
+            }
+
+            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
+
+            for(let i=1; i<=lastDate; i++) {
+                const dayOfWeek = new Date(year, month - 1, i).getDay();
+                let div = document.createElement('div');
+                div.innerText = i;
+                div.className = "mini-cal-cell "; // 스타일 변경된 클래스 적용
+                if (activeWeekdays.has(dayOfWeek) && !excludedDates.has(i)) {
+                    div.className += "mini-active";
+                }
+                calDiv.appendChild(div);
+            }
+        }
+
+        function addManualRow(nameVal = '', timeVal = '') {
+            const id = Date.now() + Math.random(); 
+            const html = `
+                <div class="bg-white p-3 border rounded shadow-sm relative group manual-row" id="mrow-${id}">
+                    <button onclick="removeEl('mrow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
+                    <div class="mb-2">
+                        <input type="text" class="sub-name w-full text-sm font-bold border-b p-1 focus:outline-none focus:border-blue-500" placeholder="과목명" value="${nameVal}" oninput="updateAll()">
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-gray-400">1회당 시간</label>
+                            <input type="number" class="sub-time w-full p-1 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()">
+                        </div>
+                        <span class="pt-4">h ×</span>
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-gray-400">월 횟수</label>
+                            <input type="number" class="sub-count w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()">
+                        </div>
+                        <span class="pt-4">회 ×</span>
+                        <div class="flex-[1.5]">
+                            <label class="block text-[10px] text-gray-400">시간당 금액</label>
+                            <input type="number" class="sub-rate w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()">
+                        </div>
+                        <span class="pt-4">원</span>
+                    </div>
+                </div>`;
+            document.getElementById('manualList').insertAdjacentHTML('beforeend', html);
+            updateAll();
+        }
+
+        function addAutoRow(nameVal = '') {
+            const id = Date.now() + Math.random();
+            const html = `
+                <div class="bg-white p-3 border rounded shadow-sm relative group auto-row" id="arow-${id}">
+                    <button onclick="removeEl('arow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
+                    <div class="mb-2">
+                        <input type="text" class="sub-name w-full text-sm font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${nameVal}" oninput="updateAll()">
+                    </div>
+                    <div class="flex justify-between mb-3 px-1">
+                        ${['일','월','화','수','목','금','토'].map((d, i) => `
+                            <div>
+                                <input type="checkbox" id="d-${id}-${i}" value="${i}" class="day-chk hidden" onchange="updateDateContext()">
+                                <label for="d-${id}-${i}" class="block w-8 h-8 rounded-full border text-center leading-8 text-xs cursor-pointer select-none text-gray-500 hover:bg-gray-100 transition">${d}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex gap-2 bg-blue-50 p-2 rounded items-center">
+                        <span class="text-xs font-bold text-[#004094]">자동:</span>
+                        <input type="text" id="cnt-${id}" class="sub-count w-10 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0">
+                        <span class="text-xs">회(주) ×</span>
+                        <input type="number" class="sub-rate w-20 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()">
+                        <span class="self-center text-xs">원</span>
+                    </div>
+                </div>`;
+            document.getElementById('autoList').insertAdjacentHTML('beforeend', html);
+            updateAll();
+        }
+
+        function removeEl(id) {
+            document.getElementById(id).remove();
+            updateAll();
+        }
+
+        function recalcRow(rowIdSuffix) {
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            const selectedDays = [];
+            for(let i=0; i<7; i++) {
+                if(document.getElementById(`d-${rowIdSuffix}-${i}`).checked) selectedDays.push(i);
+            }
+            let count = 0;
+            const date = new Date(year, month - 1, 1);
+            while (date.getMonth() === month - 1) {
+                const currentDay = date.getDate();
+                if (selectedDays.includes(date.getDay()) && !excludedDates.has(currentDay)) {
+                    count++;
+                }
+                date.setDate(currentDay + 1);
+            }
+            document.getElementById(`cnt-${rowIdSuffix}`).value = count;
+        }
+
+        function recalcAllAutoCounts() {
+            document.querySelectorAll('.auto-row').forEach(row => {
+                const id = row.id.replace('arow-', '');
+                recalcRow(id);
+            });
+            // 여기선 render 호출 안함. updateAll()에서 일괄 처리
+        }
+
+        function updateAll() {
+            const name = document.getElementById('studentName').value || '학생명';
+            const year = document.getElementById('targetYear').value;
+            const month = document.getElementById('targetMonth').value;
+            
+            document.getElementById('dispName').innerText = name;
+            document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
+            renderReceiptCalendar(); 
+
+            const tbody = document.getElementById('receiptBody');
+            tbody.innerHTML = '';
+            
+            let subtotal = 0;
+            let exportText = `이름\t년\t월\t과목명\t상세내용\t단가\t금액\n`;
+
+            if (currentTab === 'auto') {
+                document.querySelectorAll('#autoList .auto-row').forEach(row => {
+                    const subjectRaw = row.querySelector('.sub-name').value;
+                    const count = parseFloat(row.querySelector('.sub-count').value) || 0;
+                    const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
+
+                    if (subjectRaw || count > 0) {
+                        const rowTotal = count * rate;
+                        subtotal += rowTotal;
+                        const parts = subjectRaw.split('-');
+                        const subjName = parts[0] || subjectRaw;
+                        const details = parts.slice(1).join(' / ');
+                        let subjectDisplay = `<div class="font-bold text-gray-800">${subjName}</div>`;
+                        if (details) subjectDisplay += `<div class="text-xs text-[#004094] mt-1">${details}</div>`;
+                        tbody.innerHTML += `
+                            <tr class="border-b border-dashed border-gray-200">
+                                <td class="py-3 pr-2">${subjectDisplay}<div class="text-xs text-gray-500 mt-1">${count}회(주) × ${rate.toLocaleString()}원</div></td>
+                                <td class="py-3 text-right font-mono text-lg font-bold text-gray-700">${rowTotal.toLocaleString()}원</td>
+                            </tr>`;
+                        exportText += `${name}\t${year}\t${month}\t${subjectRaw}\t${count}회\t${rate}\t${rowTotal}\n`;
+                    }
+                });
+            } else {
+                document.querySelectorAll('#manualList .manual-row').forEach(row => {
+                    const subject = row.querySelector('.sub-name').value;
+                    const time = parseFloat(row.querySelector('.sub-time').value) || 0;
+                    const count = parseFloat(row.querySelector('.sub-count').value) || 0;
+                    const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
+                    if (subject || (time > 0 && count > 0)) {
+                        const rowTotal = time * count * rate;
+                        subtotal += rowTotal;
+                        tbody.innerHTML += `
+                            <tr class="border-b border-dashed border-gray-200">
+                                <td class="py-3 pr-2">
+                                    <div class="font-bold text-gray-800">${subject}</div>
+                                    <div class="text-xs text-gray-500 mt-1">${time}시간 × ${count}회 × ${rate.toLocaleString()}원</div>
+                                </td>
+                                <td class="py-3 text-right font-mono text-lg font-bold text-gray-700">${rowTotal.toLocaleString()}원</td>
+                            </tr>`;
+                        exportText += `${name}\t${year}\t${month}\t${subject}\t${time}h*${count}회\t${rate}\t${rowTotal}\n`;
+                    }
+                });
+            }
+
+            const adj = parseFloat(document.getElementById('adjustment').value) || 0;
+            const total = subtotal + adj;
+            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
+            const adjEl = document.getElementById('dispAdj');
+            adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
+            adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
+            document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';
+            document.getElementById('exportData').value = exportText;
+        }
+
+        function copyToClipboard() {
+            const copyText = document.getElementById("exportData");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => alert("복사되었습니다."));
+        }
+
+        function downloadImage() {
+            const captureElement = document.getElementById("captureArea");
+            html2canvas(captureElement, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                const link = document.createElement("a");
+                const name = document.getElementById('studentName').value || '학생';
+                const month = document.getElementById('targetMonth').value;
+                link.download = `수강료_${name}_${month}월_에스에듀.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
 </body>
 </html>
-
