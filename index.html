@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에스에듀 반포관 수강료 계산기 V17</title>
+    <title>에스에듀 반포관 수강료 계산기 V18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -15,14 +15,14 @@
         .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
         
         /* 리스트 스타일 */
-        .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.4; font-size: 0.85rem; }
-        .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: -1px; }
+        .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
+        .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
         /* [1열] 입력용 미니 달력 */
         .calendar-grid div { 
-            width: 30px; height: 30px; 
+            width: 32px; height: 32px; 
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; margin: 2px auto; 
+            font-size: 0.85rem; margin: 2px auto; 
             border-radius: 50%; transition: all 0.2s; cursor: pointer; 
         }
         .sun { color: #ef4444; }
@@ -30,56 +30,61 @@
         .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
 
-        /* [핵심 수정] 영수증 내부 결과 달력 (높이 자동 조절) */
+        /* [3열] 영수증 내부 결과 달력 (잘림 방지 및 가독성 개선) */
         .receipt-cal-grid { 
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
             background-color: #e5e7eb; border: 1px solid #e5e7eb; 
         }
         .receipt-cal-cell { 
             background-color: white; 
-            min-height: 60px; /* 최소 높이는 유지 */
-            height: auto;     /* 내용이 많으면 늘어남 */
-            padding: 6px 2px; /* 위아래 패딩 확보 */
+            min-height: 65px; /* 높이 확보 */
+            padding: 6px 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
         }
         .rc-date { 
-            font-size: 0.7rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; 
+            font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; 
         }
         .rc-subject { 
-            font-size: 0.75rem; 
+            font-size: 0.8rem; /* 폰트 크기 */
             background-color: #eff6ff; color: #004094; 
             width: 90%; text-align: center; 
-            padding: 3px 0 1px 0; 
-            border-radius: 3px; 
-            margin-bottom: 2px; /* 배지 간 간격 확보 */
+            padding: 4px 0; /* 상하 패딩을 넉넉하게 */
+            border-radius: 4px; 
+            margin-bottom: 2px; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            font-weight: 800; line-height: 1.1; 
+            font-weight: 800; 
+            line-height: 1.2; /* 줄 간격을 넓혀서 잘림 방지 */
             display: block; 
         }
         .rc-active-date { color: #1f2937; }
 
-        /* 텍스트 위치 강제 보정 */
-        .text-lift { padding-bottom: 3px; display: inline-block; }
+        /* [수정] 텍스트 수직 정렬 (안전한 방식) */
+        .text-optical-center {
+            display: inline-block;
+            line-height: 1;
+            padding-top: 1px; /* 미세 조정 */
+        }
 
         /* 배지 스타일 */
         .badge-base {
             display: inline-flex; align-items: center; justify-content: center;
-            height: 24px; 
-            padding: 0 8px 3px 8px; 
-            font-size: 0.75rem; 
-            border-radius: 6px; font-weight: 700; margin-left: 5px;
+            height: 26px; /* 높이 증가 */
+            padding: 0 10px;
+            font-size: 0.8rem; 
+            border-radius: 6px; font-weight: 700; margin-left: 6px;
             vertical-align: middle;
             line-height: 1;
         }
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
-        /* 영수증 전체 컨테이너 */
+        /* 영수증 전체 컨테이너 (광폭 1100px) */
         #captureArea { 
             position: relative; 
             overflow: hidden; 
             background-color: white;
-            max-width: 1000px; 
+            max-width: 1100px; /* 가로 폭 대폭 확대 */
+            width: 1100px;
         }
         
         .watermark-img {
@@ -92,22 +97,27 @@
             z-index: 0;
         }
 
-        .receipt-content { position: relative; z-index: 10; display: flex; gap: 2rem; width: 100%; }
-        .receipt-left { flex: 1.2; }
+        .receipt-content { position: relative; z-index: 10; display: flex; gap: 3rem; width: 100%; }
+        /* 영수증 좌측 (정보) - 비율 조정 */
+        .receipt-left { flex: 1.3; }
+        /* 영수증 우측 (달력) */
         .receipt-right { flex: 1; display: flex; flex-direction: column; }
 
-        /* [추가] 스크롤바 커스텀 (입력창용) */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        /* 스크롤바 커스텀 */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         #pasteAreaContainer { transition: all 0.3s ease; }
+        
+        /* 테이블 셀 안에서 줄바꿈 방지 */
+        .no-wrap-cell { white-space: nowrap; }
     </style>
 </head>
 <body class="bg-gray-100 p-6 min-h-screen font-[400]">
 
-    <div class="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-8">
+    <div class="max-w-[1900px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-8">
         
         <div class="xl:col-span-4 space-y-5">
             
@@ -116,16 +126,16 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">학생 이름</label>
-                        <input type="text" id="studentName" placeholder="이름" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:border-[#004094] focus:outline-none" oninput="updateAll()">
+                        <input type="text" id="studentName" placeholder="이름" class="w-full p-3 border border-gray-300 rounded-lg text-sm focus:border-[#004094] focus:outline-none transition" oninput="updateAll()">
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex gap-3">
                         <div class="flex-1">
                             <label class="block text-xs font-bold text-gray-500 mb-1">연도</label>
-                            <input type="number" id="targetYear" value="2025" class="w-full p-2.5 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
+                            <input type="number" id="targetYear" value="2025" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
                         </div>
                         <div class="flex-1 relative">
                             <label class="block text-xs font-bold text-gray-500 mb-1">월</label>
-                            <input type="number" id="targetMonth" value="12" min="1" max="12" class="w-full p-2.5 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
+                            <input type="number" id="targetMonth" value="12" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
                         </div>
                     </div>
                 </div>
@@ -148,8 +158,8 @@
                     <span id="pasteIcon" class="text-[#004094] text-xs">▼</span>
                 </div>
                 <div id="pasteAreaContainer" class="hidden mt-3">
-                    <textarea id="smartPasteInput" class="w-full h-24 text-xs p-2 border border-blue-200 rounded focus:outline-none resize-none" placeholder="예: 국어-개별(홍길동)-2h"></textarea>
-                    <button onclick="processSmartPaste()" class="w-full mt-2 py-2 bg-[#004094] text-white text-xs font-bold rounded hover:bg-blue-800">분석하여 추가</button>
+                    <textarea id="smartPasteInput" class="w-full h-24 text-xs p-3 border border-blue-200 rounded focus:outline-none resize-none bg-white" placeholder="예: 국어-개별(홍길동)-2h"></textarea>
+                    <button onclick="processSmartPaste()" class="w-full mt-2 py-2.5 bg-[#004094] text-white text-xs font-bold rounded hover:bg-blue-800 transition">분석하여 추가</button>
                 </div>
             </div>
 
@@ -159,27 +169,27 @@
                     <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-sm font-bold text-center text-gray-400 hover:text-gray-600">변동형</button>
                 </div>
                 
-                <div class="p-4 bg-gray-50 h-[400px] overflow-y-auto custom-scroll">
+                <div class="p-4 bg-gray-50 h-[450px] overflow-y-auto custom-scroll">
                     <div id="tab-auto" class="block">
                         <div id="autoList" class="space-y-3"></div>
-                        <button onclick="addAutoRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
+                        <button onclick="addAutoRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094] transition">+ 과목 추가</button>
                     </div>
                     <div id="tab-manual" class="hidden">
                         <div id="manualList" class="space-y-3"></div>
-                        <button onclick="addManualRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
+                        <button onclick="addManualRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094] transition">+ 과목 추가</button>
                     </div>
                 </div>
 
                 <div class="p-4 border-t bg-white flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.05)] relative z-10">
                     <label class="text-xs font-bold text-gray-600">이월/초과금 (+/-)</label>
-                    <input type="number" id="adjustment" value="0" class="w-32 p-1.5 border border-gray-300 rounded text-right text-sm font-bold" oninput="updateAll()">
+                    <input type="number" id="adjustment" value="0" class="w-32 p-2 border border-gray-300 rounded text-right text-sm font-bold" oninput="updateAll()">
                 </div>
             </div>
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
             
-            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-10 mb-8 bg-white">
+            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-8 bg-white">
                 
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" 
                      class="watermark-img" crossorigin="anonymous">
@@ -188,7 +198,7 @@
                     <div class="text-center mb-10 relative z-20">
                         <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" 
                              crossorigin="anonymous"
-                             class="h-20 mx-auto mb-3 object-contain">
+                             class="h-24 mx-auto mb-3 object-contain">
                         <h1 class="text-3xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
                         <p class="text-sm text-gray-500 font-bold tracking-widest">수강료 안내서</p>
                     </div>
@@ -200,8 +210,8 @@
                                 <h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3>
                             </div>
                             <div>
-                                <div class="bg-[#004094] text-white px-5 h-10 rounded-full font-bold shadow-md flex items-center justify-center">
-                                    <span id="dispDate" class="text-lg text-lift">2025년 12월분</span>
+                                <div class="bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center">
+                                    <span id="dispDate" class="text-lg text-optical-center">2025년 12월분</span>
                                 </div>
                             </div>
                         </div>
@@ -209,8 +219,8 @@
                         <table class="w-full text-base mb-8">
                             <thead>
                                 <tr class="text-gray-500 border-b-2 border-gray-200">
-                                    <th class="text-left py-3 pl-1 font-extrabold">과목 / 상세 내용</th>
-                                    <th class="text-right py-3 pr-1 font-extrabold">금액</th>
+                                    <th class="text-left py-3 pl-1 font-extrabold text-lg">과목 / 상세 내용</th>
+                                    <th class="text-right py-3 pr-1 font-extrabold w-36 text-lg">금액</th>
                                 </tr>
                             </thead>
                             <tbody id="receiptBody"></tbody>
@@ -227,7 +237,7 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
+                        <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100">
                             <span class="text-xl font-black text-gray-800">최종 납부액</span>
                             <span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span>
                         </div>
@@ -239,10 +249,10 @@
                     </div>
 
                     <div class="receipt-right">
-                        <div id="receiptCalendarArea" class="mb-6 border-2 border-[#004094]/10 rounded-2xl p-5 bg-white/90 backdrop-blur-sm shadow-sm flex-1">
+                        <div id="receiptCalendarArea" class="mb-6 border-2 border-[#004094]/10 rounded-2xl p-6 bg-white/90 backdrop-blur-sm shadow-sm flex-1">
                             <div class="text-center text-sm font-black text-[#004094] mb-4 flex items-center justify-center gap-2">
                                 <span class="text-lg">📅</span> 
-                                <span id="calTitleReceipt" class="text-lift">수업 일정 상세</span>
+                                <span id="calTitleReceipt" class="text-optical-center">수업 일정 상세</span>
                             </div>
                             <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2 pb-2 border-b border-gray-200">
                                 <div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-[#004094]">토</div>
@@ -250,9 +260,9 @@
                             <div id="receiptMiniCalGrid" class="receipt-cal-grid rounded-lg overflow-hidden"></div>
                         </div>
 
-                        <div class="bg-gray-50 p-5 rounded-xl text-xs text-gray-600 border border-gray-100 shadow-inner">
-                            <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-sm">
-                                <span class="text-lift">ℹ️ 수강료 및 수업 안내</span>
+                        <div class="bg-gray-50 p-5 rounded-xl text-sm text-gray-600 border border-gray-100 shadow-inner">
+                            <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-base">
+                                <span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span>
                             </h4>
                             <ul class="info-list font-medium">
                                 <li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li>
@@ -265,8 +275,8 @@
                 </div> 
             </div>
 
-            <button onclick="downloadImage()" class="w-full max-w-[600px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1">
-                <span class="text-lift text-lg">📸 학부모 전송용 이미지 저장</span>
+            <button onclick="downloadImage()" class="w-full max-w-[1100px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1 text-lg">
+                <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
             </button>
         </div>
     </div>
@@ -275,6 +285,7 @@
         let currentTab = 'auto'; 
         let excludedDates = new Set(); 
 
+        // 초기 실행
         addAutoRow();
         updateDateContext();
 
@@ -425,7 +436,7 @@
                 subjects.forEach(subj => {
                     let subjSpan = document.createElement('div');
                     subjSpan.innerText = subj;
-                    subjSpan.className = "rc-subject shadow-sm text-lift"; 
+                    subjSpan.className = "rc-subject shadow-sm text-optical-center"; 
                     div.appendChild(subjSpan);
                 });
                 calDiv.appendChild(div);
@@ -435,25 +446,25 @@
         function addManualRow(nameVal = '', timeVal = '') {
             const id = Date.now() + Math.random(); 
             const html = `
-                <div class="bg-white p-3 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}">
+                <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}">
                     <button onclick="removeEl('mrow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                    <div class="mb-2">
-                        <input type="text" class="sub-name w-full text-sm font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="과목명" value="${nameVal}" oninput="updateAll()">
+                    <div class="mb-3">
+                        <input type="text" class="sub-name w-full text-base font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="과목명" value="${nameVal}" oninput="updateAll()">
                     </div>
                     <div class="flex items-center gap-2 text-xs">
                         <div class="flex-1">
                             <label class="block text-gray-400 mb-0.5">시간</label>
-                            <input type="number" class="sub-time w-full p-1 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()">
+                            <input type="number" class="sub-time w-full p-2 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()">
                         </div>
                         <span class="pt-4 text-gray-300">×</span>
                         <div class="flex-1">
                             <label class="block text-gray-400 mb-0.5">횟수</label>
-                            <input type="number" class="sub-count w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()">
+                            <input type="number" class="sub-count w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()">
                         </div>
                         <span class="pt-4 text-gray-300">×</span>
                         <div class="flex-[1.5]">
                             <label class="block text-gray-400 mb-0.5">금액</label>
-                            <input type="number" class="sub-rate w-full p-1 border rounded text-right" placeholder="0" oninput="updateAll()">
+                            <input type="number" class="sub-rate w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()">
                         </div>
                     </div>
                 </div>`;
@@ -464,23 +475,23 @@
         function addAutoRow(nameVal = '') {
             const id = Date.now() + Math.random();
             const html = `
-                <div class="bg-white p-3 border border-gray-200 rounded-lg shadow-sm relative group auto-row" id="arow-${id}">
+                <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group auto-row" id="arow-${id}">
                     <button onclick="removeEl('arow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                    <div class="mb-2">
-                        <input type="text" class="sub-name w-full text-sm font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${nameVal}" oninput="updateAll()">
+                    <div class="mb-3">
+                        <input type="text" class="sub-name w-full text-base font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${nameVal}" oninput="updateAll()">
                     </div>
-                    <div class="flex justify-between mb-2 px-1">
+                    <div class="flex justify-between mb-3 px-1">
                         ${['일','월','화','수','목','금','토'].map((d, i) => `
                             <div>
                                 <input type="checkbox" id="d-${id}-${i}" value="${i}" class="day-chk hidden" onchange="updateDateContext()">
-                                <label for="d-${id}-${i}" class="block w-7 h-7 rounded-full border border-gray-300 text-center leading-6 text-xs cursor-pointer select-none text-gray-400 hover:bg-white hover:border-[#004094] font-bold">${d}</label>
+                                <label for="d-${id}-${i}" class="block w-8 h-8 rounded-full border border-gray-300 text-center leading-7 text-xs cursor-pointer select-none text-gray-400 hover:bg-white hover:border-[#004094] font-bold">${d}</label>
                             </div>
                         `).join('')}
                     </div>
                     <div class="flex gap-2 bg-gray-50 p-2 rounded items-center">
                         <input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0">
                         <span class="text-xs font-bold text-gray-400">회 ×</span>
-                        <input type="number" class="sub-rate w-20 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()">
+                        <input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()">
                     </div>
                 </div>`;
             document.getElementById('autoList').insertAdjacentHTML('beforeend', html);
@@ -539,22 +550,22 @@
                 for(let i=1; i<parts.length; i++) {
                     const part = parts[i].trim();
                     if(part.toUpperCase().endsWith('T')) {
-                        badgesHTML += `<span class="badge-base teacher-badge text-lift">${part}</span>`;
+                        badgesHTML += `<span class="badge-base teacher-badge text-optical-center">${part}</span>`;
                     }
                     else if(part.toLowerCase().endsWith('h')) {
                         detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
                     }
                     else {
-                        badgesHTML += `<span class="badge-base type-badge text-lift">${part}</span>`;
+                        badgesHTML += `<span class="badge-base type-badge text-optical-center">${part}</span>`;
                     }
                 }
                 
                 return {
                     display: `
                         <div class="flex items-center flex-wrap gap-y-1">
-                            <span class="font-extrabold text-gray-800 text-base mr-1">${subject}</span>
+                            <span class="font-extrabold text-gray-800 text-lg mr-1">${subject}</span>
                             ${badgesHTML}
-                            ${detailsText ? `<span class="text-xs text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}
+                            ${detailsText ? `<span class="text-base text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}
                         </div>
                     `,
                     raw: rawSubject
@@ -572,7 +583,8 @@
                 if(currentTab === 'auto') {
                     count = parseFloat(row.querySelector('.sub-count').value) || 0;
                     rowTotal = count * rate;
-                    detailStr = `${count}회(주) × ${rate.toLocaleString()}원`;
+                    // [수정] 회(주) -> 회(월) 변경
+                    detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
                 } else {
                     const time = parseFloat(row.querySelector('.sub-time').value) || 0;
                     count = parseFloat(row.querySelector('.sub-count').value) || 0;
@@ -585,11 +597,11 @@
                     const subjObj = createSubjectHTML(subjectRaw);
                     tbody.innerHTML += `
                         <tr class="border-b border-dashed border-gray-200 last:border-0">
-                            <td class="py-3 pl-1 pr-2 align-top">
+                            <td class="py-3 pl-1 pr-2 align-top no-wrap-cell">
                                 ${subjObj.display}
-                                <div class="text-xs text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div>
+                                <div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div>
                             </td>
-                            <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td>
+                            <td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td>
                         </tr>`;
                 }
             });
