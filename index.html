@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에스에듀 반포관 수강료 계산기 V16</title>
+    <title>에스에듀 반포관 수강료 계산기 V17</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -30,43 +30,42 @@
         .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
 
-        /* [3열] 영수증 내부 결과 달력 (잘림 해결) */
+        /* [핵심 수정] 영수증 내부 결과 달력 (높이 자동 조절) */
         .receipt-cal-grid { 
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
             background-color: #e5e7eb; border: 1px solid #e5e7eb; 
         }
         .receipt-cal-cell { 
             background-color: white; 
-            height: 60px; /* 높이 고정 */
-            padding: 4px 0; /* 좌우 패딩 제거 */
+            min-height: 60px; /* 최소 높이는 유지 */
+            height: auto;     /* 내용이 많으면 늘어남 */
+            padding: 6px 2px; /* 위아래 패딩 확보 */
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
         }
         .rc-date { 
-            font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; 
+            font-size: 0.7rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; 
         }
         .rc-subject { 
-            font-size: 0.75rem; /* 글자 크기 */
+            font-size: 0.75rem; 
             background-color: #eff6ff; color: #004094; 
-            width: 85%; text-align: center; /* 너비 고정 및 중앙 정렬 */
-            padding: 4px 0 2px 0; /* 상하 패딩 조정으로 텍스트 위치 보정 */
-            border-radius: 3px; margin-bottom: 2px; 
+            width: 90%; text-align: center; 
+            padding: 3px 0 1px 0; 
+            border-radius: 3px; 
+            margin-bottom: 2px; /* 배지 간 간격 확보 */
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            font-weight: 800; line-height: 1; 
+            font-weight: 800; line-height: 1.1; 
             display: block; 
         }
         .rc-active-date { color: #1f2937; }
 
-        /* [텍스트 위치 강제 보정] */
-        .text-lift {
-            padding-bottom: 3px; /* 글자를 위로 3px 들어올림 */
-            display: inline-block;
-        }
+        /* 텍스트 위치 강제 보정 */
+        .text-lift { padding-bottom: 3px; display: inline-block; }
 
-        /* 배지 스타일 (강제 중앙 정렬) */
+        /* 배지 스타일 */
         .badge-base {
             display: inline-flex; align-items: center; justify-content: center;
             height: 24px; 
-            padding: 0 8px 3px 8px; /* 하단 패딩 3px로 텍스트 들어올림 */
+            padding: 0 8px 3px 8px; 
             font-size: 0.75rem; 
             border-radius: 6px; font-weight: 700; margin-left: 5px;
             vertical-align: middle;
@@ -75,15 +74,14 @@
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
-        /* 영수증 전체 컨테이너 (와이드) */
+        /* 영수증 전체 컨테이너 */
         #captureArea { 
             position: relative; 
             overflow: hidden; 
             background-color: white;
-            max-width: 1000px; /* 전체 폭 넓게 */
+            max-width: 1000px; 
         }
         
-        /* 진짜 워터마크 */
         .watermark-img {
             position: absolute;
             top: 50%; left: 50%;
@@ -95,10 +93,14 @@
         }
 
         .receipt-content { position: relative; z-index: 10; display: flex; gap: 2rem; width: 100%; }
-        /* 영수증 좌측 (정보) */
         .receipt-left { flex: 1.2; }
-        /* 영수증 우측 (달력) */
         .receipt-right { flex: 1; display: flex; flex-direction: column; }
+
+        /* [추가] 스크롤바 커스텀 (입력창용) */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         #pasteAreaContainer { transition: all 0.3s ease; }
     </style>
@@ -127,6 +129,17 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="calTitle" class="text-[#004094] text-xs font-bold">12월 제외일 설정</span>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold">클릭=휴강</span>
+                    </div>
+                    <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
+                        <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"></div>
+                </div>
             </div>
 
             <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-inner">
@@ -145,7 +158,8 @@
                     <button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 text-sm font-bold text-center bg-[#004094]/5 text-[#004094] border-b-2 border-[#004094]">요일 고정형</button>
                     <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-sm font-bold text-center text-gray-400 hover:text-gray-600">변동형</button>
                 </div>
-                <div class="p-4 bg-gray-50 min-h-[300px]">
+                
+                <div class="p-4 bg-gray-50 h-[400px] overflow-y-auto custom-scroll">
                     <div id="tab-auto" class="block">
                         <div id="autoList" class="space-y-3"></div>
                         <button onclick="addAutoRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
@@ -155,17 +169,8 @@
                         <button onclick="addManualRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
                     </div>
                 </div>
-                <div class="p-4 border-t bg-white">
-                    <div class="flex justify-between items-center mb-2">
-                        <span id="calTitle" class="text-[#004094] text-xs font-bold">12월 제외일 설정</span>
-                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold">클릭=휴강</span>
-                    </div>
-                    <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
-                        <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
-                    </div>
-                    <div id="calendarGrid" class="grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"></div>
-                </div>
-                <div class="p-4 border-t bg-gray-50 flex items-center justify-between">
+
+                <div class="p-4 border-t bg-white flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.05)] relative z-10">
                     <label class="text-xs font-bold text-gray-600">이월/초과금 (+/-)</label>
                     <input type="number" id="adjustment" value="0" class="w-32 p-1.5 border border-gray-300 rounded text-right text-sm font-bold" oninput="updateAll()">
                 </div>
@@ -179,16 +184,15 @@
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" 
                      class="watermark-img" crossorigin="anonymous">
 
-                <div class="text-center mb-10 relative z-20">
-                    <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" 
-                         crossorigin="anonymous"
-                         class="h-20 mx-auto mb-3 object-contain">
-                    <h1 class="text-3xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
-                    <p class="text-sm text-gray-500 font-bold tracking-widest">수강료 안내서</p>
-                </div>
-
                 <div class="receipt-content">
-                    
+                    <div class="text-center mb-10 relative z-20">
+                        <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" 
+                             crossorigin="anonymous"
+                             class="h-20 mx-auto mb-3 object-contain">
+                        <h1 class="text-3xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
+                        <p class="text-sm text-gray-500 font-bold tracking-widest">수강료 안내서</p>
+                    </div>
+
                     <div class="receipt-left">
                         <div class="flex justify-between items-end border-b-4 border-gray-800 pb-4 mb-8">
                             <div>
@@ -258,7 +262,8 @@
                         </div>
                     </div>
 
-                </div> </div>
+                </div> 
+            </div>
 
             <button onclick="downloadImage()" class="w-full max-w-[600px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1">
                 <span class="text-lift text-lg">📸 학부모 전송용 이미지 저장</span>
@@ -372,8 +377,6 @@
         }
 
         function renderReceiptCalendar() {
-            const container = document.getElementById('receiptCalendarArea');
-            
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
             document.getElementById('calTitleReceipt').innerText = `${month}월 수업 일정 상세`;
