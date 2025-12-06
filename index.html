@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에스에듀 반포관 수강료 계산기 V10</title>
+    <title>에스에듀 반포관 수강료 계산기 V11</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -18,50 +18,74 @@
         .info-list li { margin-bottom: 0.25rem; position: relative; padding-left: 0.8rem; line-height: 1.4; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; }
 
-        /* 컨트롤 패널 달력 */
-        .calendar-grid div { height: 32px; line-height: 32px; font-size: 0.8rem; margin: 1px; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
+        /* [수정] 컨트롤 패널 달력: 완벽한 정원 구현 */
+        .calendar-grid div { 
+            width: 32px; height: 32px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; margin: 2px auto; 
+            border-radius: 50%; transition: all 0.2s; cursor: pointer; 
+        }
         .sun { color: #ef4444; }
         .sat { color: #3b82f6; }
         .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
 
-        /* 영수증 내부 상세 달력 */
-        .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
-        .receipt-cal-cell { background-color: white; min-height: 48px; padding: 2px; display: flex; flex-direction: column; align-items: center; }
-        .rc-date { font-size: 0.65rem; font-weight: bold; color: #9ca3af; margin-bottom: 2px; }
+        /* [수정] 영수증 내부 상세 달력 (텍스트 정중앙 정렬) */
+        .receipt-cal-grid { 
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
+            background-color: #e5e7eb; border: 1px solid #e5e7eb; 
+        }
+        .receipt-cal-cell { 
+            background-color: white; 
+            min-height: 48px; 
+            padding: 2px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: start;
+        }
+        .rc-date { 
+            font-size: 0.65rem; font-weight: bold; color: #9ca3af; margin-bottom: 2px; line-height: 1; margin-top: 2px;
+        }
+        /* 뱃지 중앙 정렬 보정 */
         .rc-subject { 
             font-size: 0.6rem; background-color: #eff6ff; color: #004094; 
-            padding: 1px 4px; border-radius: 3px; margin-bottom: 1px; 
+            padding: 2px 4px 1px 4px; /* 패딩 미세조정 */
+            border-radius: 3px; margin-bottom: 1px; 
             white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: ellipsis; 
-            font-weight: 700;
+            font-weight: 700; line-height: 1.1;
+            display: flex; align-items: center; justify-content: center;
         }
         .rc-active-date { color: #1f2937; }
 
-        /* [NEW] 워터마크 스타일 */
+        /* 워터마크 */
         .watermark-container {
             position: absolute; top: 55%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 70%; opacity: 0.06; /* 은은한 투명도 */
+            width: 70%; opacity: 0.06; 
             pointer-events: none; z-index: 0;
             filter: grayscale(100%);
         }
 
-        /* [NEW] 과목 타입 배지 스타일 */
-        .type-badge {
-            display: inline-block;
-            background-color: #004094;
-            color: white;
+        /* [수정] 배지 스타일 통합 (수업유형, 강사) */
+        .badge-base {
+            display: inline-flex;
+            align-items: center; justify-content: center;
             font-size: 0.65rem;
-            padding: 2px 6px;
+            padding: 2px 6px 1px 6px; /* 텍스트 수직 중앙 보정 */
             border-radius: 4px;
-            font-weight: 500;
-            margin-left: 6px;
+            font-weight: 600;
+            margin-left: 4px;
             vertical-align: middle;
-            letter-spacing: -0.5px;
+            line-height: 1.1;
+            letter-spacing: -0.3px;
         }
+        .type-badge { background-color: #004094; color: white; }
+        .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
-        /* 내용물은 워터마크 위에 떠야 함 */
         .receipt-content { position: relative; z-index: 10; }
+        
+        /* [NEW] 영수증 가로 배치용 그리드 */
+        .receipt-layout { display: flex; gap: 1.5rem; align-items: flex-start; }
+        .receipt-left { flex: 1; }
+        .receipt-right { width: 45%; flex-shrink: 0; }
 
         #pasteAreaContainer { transition: all 0.3s ease; }
     </style>
@@ -145,8 +169,8 @@
                 </div>
 
                 <div class="p-4 bg-indigo-50 border-t flex items-center gap-2">
-                    <input type="checkbox" id="showReceiptCal" class="w-4 h-4 text-indigo-600 rounded" onchange="updateAll()">
-                    <label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none">🧾 영수증에 '수업 인정일 상세 달력' 포함</label>
+                    <input type="checkbox" id="showReceiptCal" class="w-4 h-4 text-indigo-600 rounded" checked onchange="updateAll()">
+                    <label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none">🧾 영수증에 '수업 일정 달력' 포함 (우측 배치)</label>
                 </div>
 
                 <div class="p-4 bg-white border-t">
@@ -168,7 +192,7 @@
 
         <div class="lg:col-span-6 flex flex-col items-center">
             
-            <div id="captureArea" class="bg-white p-8 w-full max-w-md receipt-shadow relative border-t-8 border-[#004094] mb-6 overflow-hidden">
+            <div id="captureArea" class="bg-white p-8 w-full max-w-lg receipt-shadow relative border-t-8 border-[#004094] mb-6 overflow-hidden">
                 
                 <img src="https://github.com/whdtjd5294/whdtjd5294.github.io/blob/main/sedu_logo.png?raw=true" class="watermark-container" alt="워터마크">
 
@@ -188,45 +212,49 @@
                         </div>
                         <div>
                             <div class="bg-[#004094] text-white px-3 h-7 flex items-center justify-center text-sm rounded-full font-bold shadow-sm">
-                                <span id="dispDate" style="line-height: 1;">2025년 12월분</span>
+                                <span id="dispDate" class="pt-[1px]">2025년 12월분</span>
                             </div>
                         </div>
                     </div>
 
-                    <table class="w-full text-sm mb-6">
-                        <thead>
-                            <tr class="text-gray-500 border-b">
-                                <th class="text-left py-2 pl-1 font-bold">과목 / 상세 내용</th>
-                                <th class="text-right py-2 pr-1 font-bold">금액</th>
-                            </tr>
-                        </thead>
-                        <tbody id="receiptBody"></tbody>
-                    </table>
+                    <div class="receipt-layout">
+                        <div class="receipt-left">
+                            <table class="w-full text-sm mb-4">
+                                <thead>
+                                    <tr class="text-gray-500 border-b">
+                                        <th class="text-left py-2 pl-1 font-bold">과목 / 상세 내용</th>
+                                        <th class="text-right py-2 pr-1 font-bold w-20">금액</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receiptBody"></tbody>
+                            </table>
 
-                    <div id="receiptCalendarArea" class="hidden mb-6 border rounded p-3 bg-white/90 backdrop-blur-sm shadow-sm">
-                        <div class="text-center text-xs font-bold text-[#004094] mb-2 flex items-center justify-center gap-1">
-                            📅 수업 일정 상세
-                        </div>
-                        <div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
-                            <div class="text-red-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-400">토</div>
-                        </div>
-                        <div id="receiptMiniCalGrid" class="receipt-cal-grid"></div>
-                    </div>
+                            <div class="border-t border-gray-200 pt-3 space-y-2">
+                                <div class="flex justify-between text-gray-600 font-medium">
+                                    <span>수강료 소계</span>
+                                    <span id="dispSubtotal" class="font-bold text-gray-800">0</span>
+                                </div>
+                                <div class="flex justify-between text-red-500 font-medium" id="dispAdjRow">
+                                    <span>이월/초과금 조정</span>
+                                    <span id="dispAdj" class="font-bold">0</span>
+                                </div>
+                            </div>
 
-                    <div class="border-t border-gray-200 pt-4 space-y-2">
-                        <div class="flex justify-between text-gray-600 font-medium">
-                            <span>수강료 소계</span>
-                            <span id="dispSubtotal" class="font-bold text-gray-800">0</span>
+                            <div class="mt-4 pt-3 border-t-2 border-gray-800 flex justify-between items-center">
+                                <span class="text-lg font-bold text-gray-900">최종 납부액</span>
+                                <span class="text-2xl font-black text-[#004094]" id="dispTotal">0원</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-red-500 font-medium" id="dispAdjRow">
-                            <span>이월/초과금 조정</span>
-                            <span id="dispAdj" class="font-bold">0</span>
-                        </div>
-                    </div>
 
-                    <div class="mt-4 pt-4 border-t-2 border-gray-800 flex justify-between items-center">
-                        <span class="text-lg font-bold text-gray-900">최종 납부액</span>
-                        <span class="text-3xl font-black text-[#004094]" id="dispTotal">0원</span>
+                        <div id="receiptCalendarArea" class="receipt-right hidden border rounded p-2 bg-white/90 backdrop-blur-sm shadow-sm">
+                            <div class="text-center text-[10px] font-bold text-[#004094] mb-2 flex items-center justify-center gap-1">
+                                📅 수업 일정 상세
+                            </div>
+                            <div class="grid grid-cols-7 text-center text-[9px] font-bold text-gray-400 mb-1">
+                                <div class="text-red-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-400">토</div>
+                            </div>
+                            <div id="receiptMiniCalGrid" class="receipt-cal-grid"></div>
+                        </div>
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 bg-gray-50/90 p-4 rounded-lg">
@@ -244,7 +272,8 @@
                     <div class="mt-6 text-center text-sm font-bold text-gray-500">
                         <p>문의사항 : 010-4232-7428</p>
                     </div>
-                </div> </div>
+                </div> 
+            </div>
 
             <button onclick="downloadImage()" class="w-full max-w-md py-3.5 bg-[#004094] text-white font-bold rounded shadow-lg hover:bg-blue-800 transition flex justify-center items-center gap-2 transform active:scale-95">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -350,16 +379,18 @@
                 const dayOfWeek = date.getDay();
                 let div = document.createElement('div');
                 div.innerText = i;
-                div.className = "hover:bg-gray-200 ";
-
+                
+                // [수정] 컨트롤 패널 달력 원형 유지 + 중앙 정렬 클래스 적용됨
+                
                 const isExcluded = excludedDates.has(i);
                 const isActiveDay = activeWeekdays.has(dayOfWeek);
 
-                if (isExcluded) div.className += "excluded-day";
-                else if (isActiveDay) div.className += "highlight-day";
+                if (isExcluded) div.className = "excluded-day";
+                else if (isActiveDay) div.className = "highlight-day";
                 else {
-                    if(dayOfWeek === 0) div.className += "sun ";
-                    if(dayOfWeek === 6) div.className += "sat ";
+                    if(dayOfWeek === 0) div.className += " sun";
+                    if(dayOfWeek === 6) div.className += " sat";
+                    div.className += " hover:bg-gray-200";
                 }
                 div.onclick = () => toggleDateExclusion(i);
                 calDiv.appendChild(div);
@@ -529,35 +560,43 @@
             let subtotal = 0;
             let exportText = `이름\t년\t월\t과목명\t상세내용\t단가\t금액\n`;
 
-            // [NEW] 텍스트 처리 헬퍼 함수
             const formatDetails = (text) => {
-                // 숫자+h 또는 숫자+H를 '숫자시간'으로 변경
                 return text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
             };
 
             const createSubjectHTML = (rawSubject) => {
+                // 파싱 로직 강화
                 const parts = rawSubject.split('-');
                 const subject = parts[0];
-                let badge = '';
-                let details = '';
+                let badgesHTML = '';
+                let detailsText = '';
 
-                if(parts.length > 1) {
-                    // 두 번째 부분은 배지(Type)로 만듦
-                    badge = `<span class="type-badge">${parts[1]}</span>`;
-                    // 나머지는 상세 내용으로 처리하되, h->시간 변환 적용
-                    if(parts.length > 2) {
-                        details = parts.slice(2).join(' / ');
-                        details = formatDetails(details);
+                // 나머지 부분 분석
+                for(let i=1; i<parts.length; i++) {
+                    const part = parts[i].trim();
+                    // 강사명(T로 끝남)
+                    if(part.toUpperCase().endsWith('T')) {
+                        badgesHTML += `<span class="badge-base teacher-badge">${part}</span>`;
+                    }
+                    // 시간(h로 끝남) -> 그냥 텍스트로 저장하되 변환
+                    else if(part.toLowerCase().endsWith('h')) {
+                        // 시간은 뒤에 상세 텍스트에 붙임
+                        detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
+                    }
+                    // 나머지는 '유형(Type)'으로 간주하고 파란 배지
+                    else {
+                        badgesHTML += `<span class="badge-base type-badge">${part}</span>`;
                     }
                 }
                 
+                // [수정] 줄바꿈 없이 한 줄로 표시하기 위해 flex-wrap + inline-flex 구조 사용
                 return {
                     display: `
-                        <div class="flex items-center flex-wrap gap-1">
-                            <span class="font-bold text-gray-800 text-base">${subject}</span>
-                            ${badge}
+                        <div class="flex items-center flex-wrap gap-y-1">
+                            <span class="font-bold text-gray-800 text-base mr-1">${subject}</span>
+                            ${badgesHTML}
+                            ${detailsText ? `<span class="text-xs text-[#004094] font-medium ml-1.5 self-center pt-[2px]">${detailsText}</span>` : ''}
                         </div>
-                        ${details ? `<div class="text-xs text-[#004094] mt-0.5 font-medium pl-0.5">${details}</div>` : ''}
                     `,
                     raw: rawSubject
                 };
@@ -577,11 +616,11 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-dashed border-gray-200 last:border-0">
-                                <td class="py-3 pl-1 pr-2 align-top">
+                                <td class="py-2 pl-1 pr-2 align-middle">
                                     ${subjObj.display}
-                                    <div class="text-xs text-gray-500 mt-1 pl-0.5">${count}회(주) × ${rate.toLocaleString()}원</div>
+                                    <div class="text-[11px] text-gray-500 mt-0.5 pl-0.5">${count}회(주) × ${rate.toLocaleString()}원</div>
                                 </td>
-                                <td class="py-3 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-top pt-3">${rowTotal.toLocaleString()}원</td>
+                                <td class="py-2 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-middle">${rowTotal.toLocaleString()}원</td>
                             </tr>`;
                         exportText += `${name}\t${year}\t${month}\t${subjectRaw}\t${count}회\t${rate}\t${rowTotal}\n`;
                     }
@@ -596,16 +635,15 @@
                         const rowTotal = time * count * rate;
                         subtotal += rowTotal;
                         
-                        // 변동형도 배지 적용
                         const subjObj = createSubjectHTML(subject);
 
                         tbody.innerHTML += `
                             <tr class="border-b border-dashed border-gray-200 last:border-0">
-                                <td class="py-3 pl-1 pr-2 align-top">
+                                <td class="py-2 pl-1 pr-2 align-middle">
                                     ${subjObj.display}
-                                    <div class="text-xs text-gray-500 mt-1 pl-0.5">${time}시간 × ${count}회 × ${rate.toLocaleString()}원</div>
+                                    <div class="text-[11px] text-gray-500 mt-0.5 pl-0.5">${time}시간 × ${count}회 × ${rate.toLocaleString()}원</div>
                                 </td>
-                                <td class="py-3 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-top pt-3">${rowTotal.toLocaleString()}원</td>
+                                <td class="py-2 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-middle">${rowTotal.toLocaleString()}원</td>
                             </tr>`;
                         exportText += `${name}\t${year}\t${month}\t${subject}\t${time}h*${count}회\t${rate}\t${rowTotal}\n`;
                     }
@@ -631,7 +669,6 @@
 
         function downloadImage() {
             const captureElement = document.getElementById("captureArea");
-            // html2canvas 옵션: scale을 높여 선명도 확보, scrollY로 위치 보정
             html2canvas(captureElement, { 
                 scale: 3, 
                 useCORS: true, 
