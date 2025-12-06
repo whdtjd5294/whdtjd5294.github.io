@@ -3,30 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에스에듀 반포관 수강료 계산기 V8</title>
+    <title>에스에듀 반포관 수강료 계산기 V10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; }
-        .receipt-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-        .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
-        .info-list li { margin-bottom: 0.25rem; position: relative; padding-left: 1rem; }
-        .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; }
         
+        /* 쉐도우 및 유틸 */
+        .receipt-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
+        
+        /* 리스트 스타일 */
+        .info-list li { margin-bottom: 0.25rem; position: relative; padding-left: 0.8rem; line-height: 1.4; }
+        .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; }
+
         /* 컨트롤 패널 달력 */
         .calendar-grid div { height: 32px; line-height: 32px; font-size: 0.8rem; margin: 1px; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
         .sun { color: #ef4444; }
         .sat { color: #3b82f6; }
-        
         .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
 
-        /* 영수증 내부 미니 달력 (완벽한 동그라미 수정) */
-        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.6rem; }
-        /* 너비와 높이를 고정하고 margin auto로 중앙 정렬 */
-        .mini-cal-cell { width: 18px; height: 18px; line-height: 18px; border-radius: 50%; margin: 0 auto; }
-        .mini-active { background-color: #004094; color: white; font-weight: bold; }
+        /* 영수증 내부 상세 달력 */
+        .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
+        .receipt-cal-cell { background-color: white; min-height: 48px; padding: 2px; display: flex; flex-direction: column; align-items: center; }
+        .rc-date { font-size: 0.65rem; font-weight: bold; color: #9ca3af; margin-bottom: 2px; }
+        .rc-subject { 
+            font-size: 0.6rem; background-color: #eff6ff; color: #004094; 
+            padding: 1px 4px; border-radius: 3px; margin-bottom: 1px; 
+            white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: ellipsis; 
+            font-weight: 700;
+        }
+        .rc-active-date { color: #1f2937; }
+
+        /* [NEW] 워터마크 스타일 */
+        .watermark-container {
+            position: absolute; top: 55%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%; opacity: 0.06; /* 은은한 투명도 */
+            pointer-events: none; z-index: 0;
+            filter: grayscale(100%);
+        }
+
+        /* [NEW] 과목 타입 배지 스타일 */
+        .type-badge {
+            display: inline-block;
+            background-color: #004094;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-left: 6px;
+            vertical-align: middle;
+            letter-spacing: -0.5px;
+        }
+
+        /* 내용물은 워터마크 위에 떠야 함 */
+        .receipt-content { position: relative; z-index: 10; }
 
         #pasteAreaContainer { transition: all 0.3s ease; }
     </style>
@@ -84,7 +119,7 @@
                     <button onclick="processSmartPaste()" class="w-full mt-2 py-1.5 bg-[#004094] text-white text-xs font-bold rounded hover:bg-blue-800 transition">
                         ⚡ 분석하여 목록에 추가하기
                     </button>
-                    <p class="text-[10px] text-gray-500 mt-1">* 현재 선택된 탭(자동/수동)에 맞춰 추가됩니다. 시간(2h)이 있으면 자동 입력됩니다.</p>
+                    <p class="text-[10px] text-gray-500 mt-1">* 3h는 '3시간'으로 자동 표기되며, 계산에도 반영됩니다.</p>
                 </div>
             </div>
 
@@ -103,7 +138,6 @@
                         <div id="autoList" class="space-y-4"></div>
                         <button onclick="addAutoRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition">+ 고정 과목 추가</button>
                     </div>
-
                     <div id="tab-manual" class="hidden">
                         <div id="manualList" class="space-y-3"></div>
                         <button onclick="addManualRow()" class="mt-4 w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-[#004094] hover:text-[#004094] transition">+ 과목 행 추가</button>
@@ -112,7 +146,7 @@
 
                 <div class="p-4 bg-indigo-50 border-t flex items-center gap-2">
                     <input type="checkbox" id="showReceiptCal" class="w-4 h-4 text-indigo-600 rounded" onchange="updateAll()">
-                    <label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none">🧾 영수증에 '수업 인정일 달력' 포함</label>
+                    <label for="showReceiptCal" class="text-sm font-bold text-indigo-900 cursor-pointer select-none">🧾 영수증에 '수업 인정일 상세 달력' 포함</label>
                 </div>
 
                 <div class="p-4 bg-white border-t">
@@ -134,85 +168,87 @@
 
         <div class="lg:col-span-6 flex flex-col items-center">
             
-            <div class="w-full max-w-md mb-2 text-right">
-                <details class="text-xs text-gray-400 cursor-pointer">
-                    <summary>로고 설정</summary>
-                    <div class="mt-2 p-2 bg-white border rounded shadow-lg absolute z-10 w-64 right-0">
-                        <input type="text" id="logoUrlInput" class="w-full border p-1 rounded mb-1" placeholder="이미지 주소 입력" oninput="updateLogoFromInput()">
-                    </div>
-                </details>
-            </div>
-
-            <div id="captureArea" class="bg-white p-8 w-full max-w-md receipt-shadow relative border-t-8 border-[#004094] mb-6">
-                <div class="text-center mb-6">
-                    <img id="logoImg" src="https://drive.google.com/uc?export=view&id=1juBk9tFJ5JdhJa8B72iF9YhOzvUTUcwY" 
-                         onerror="this.onerror=null; this.src='https://placehold.co/200x80/004094/ffffff?text=S-EDU';" 
-                         alt="에스에듀 로고" class="h-16 mx-auto mb-2 object-contain">
-                    <h1 class="text-2xl font-bold text-[#004094] mb-1">에스에듀 반포관</h1>
-                    <p class="text-sm text-gray-500">수강료 안내서</p>
-                </div>
-
-                <div class="flex justify-between items-end border-b-2 border-gray-800 pb-2 mb-4">
-                    <div>
-                        <span class="text-sm text-gray-500">학생명</span>
-                        <h3 class="text-xl font-bold" id="dispName">학생명</h3>
-                    </div>
-                    <div>
-                        <span class="bg-[#004094] text-white px-3 py-1 text-sm rounded-full font-bold" id="dispDate">2025년 12월분</span>
-                    </div>
-                </div>
-
-                <table class="w-full text-sm mb-6">
-                    <thead>
-                        <tr class="text-gray-500 border-b">
-                            <th class="text-left py-2">과목 / 상세 내용</th>
-                            <th class="text-right py-2">금액</th>
-                        </tr>
-                    </thead>
-                    <tbody id="receiptBody"></tbody>
-                </table>
-
-                <div id="receiptCalendarArea" class="hidden mb-6 border rounded p-3 bg-gray-50">
-                    <div class="text-center text-xs font-bold text-[#004094] mb-2">📅 수업 인정일 확인</div>
-                    <div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
-                        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-                    </div>
-                    <div id="receiptMiniCalGrid" class="mini-cal-grid text-gray-300"></div>
-                </div>
-
-                <div class="border-t border-gray-200 pt-4 space-y-2">
-                    <div class="flex justify-between text-gray-600">
-                        <span>수강료 소계</span>
-                        <span id="dispSubtotal" class="font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between text-red-500" id="dispAdjRow">
-                        <span>이월/초과금 조정</span>
-                        <span id="dispAdj" class="font-bold">0</span>
-                    </div>
-                </div>
-
-                <div class="mt-4 pt-4 border-t-2 border-gray-800 flex justify-between items-center">
-                    <span class="text-lg font-bold">최종 납부액</span>
-                    <span class="text-3xl font-bold text-[#004094]" id="dispTotal">0원</span>
-                </div>
-
-                <div class="mt-6 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 bg-gray-50 p-4 rounded">
-                    <h4 class="font-bold text-[#004094] mb-2">※ 수강료 및 수업 안내 ※</h4>
-                    <ul class="info-list space-y-1">
-                        <li>'회당' 가격은 <b>시간당 가격</b>이며, '횟수'는 <b>한 달 총 수강 시간</b>입니다.</li>
-                        <li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li>
-                        <li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다. (1:1 수업 당일 취소 건 포함)</li>
-                        <li><b>결제 방법:</b> '결제링크'를 통한 카드 분할 결제, 서울페이/제로페이, 계좌이체 가능합니다.</li>
-                    </ul>
-                </div>
+            <div id="captureArea" class="bg-white p-8 w-full max-w-md receipt-shadow relative border-t-8 border-[#004094] mb-6 overflow-hidden">
                 
-                <div class="mt-6 text-center text-sm font-bold text-gray-500">
-                    <p>문의사항 : 010-4232-7428</p>
-                </div>
-            </div>
+                <img src="https://github.com/whdtjd5294/whdtjd5294.github.io/blob/main/sedu_logo.png?raw=true" class="watermark-container" alt="워터마크">
 
-            <button onclick="downloadImage()" class="w-full max-w-md py-3 bg-[#004094] text-white font-bold rounded shadow hover:bg-blue-800 transition flex justify-center items-center gap-2">
-                📸 학부모 전송용 이미지 저장
+                <div class="receipt-content">
+                    <div class="text-center mb-6">
+                        <img id="logoImg" src="https://github.com/whdtjd5294/whdtjd5294.github.io/blob/main/sedu_logo.png?raw=true" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/200x80/004094/ffffff?text=S-EDU';" 
+                             alt="에스에듀 로고" class="h-16 mx-auto mb-2 object-contain">
+                        <h1 class="text-2xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
+                        <p class="text-sm text-gray-500 font-medium">수강료 안내서</p>
+                    </div>
+
+                    <div class="flex justify-between items-end border-b-2 border-gray-800 pb-2 mb-4">
+                        <div>
+                            <span class="text-xs text-gray-500 font-bold block mb-1">학생명</span>
+                            <h3 class="text-xl font-bold text-gray-900" id="dispName">학생명</h3>
+                        </div>
+                        <div>
+                            <div class="bg-[#004094] text-white px-3 h-7 flex items-center justify-center text-sm rounded-full font-bold shadow-sm">
+                                <span id="dispDate" style="line-height: 1;">2025년 12월분</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="w-full text-sm mb-6">
+                        <thead>
+                            <tr class="text-gray-500 border-b">
+                                <th class="text-left py-2 pl-1 font-bold">과목 / 상세 내용</th>
+                                <th class="text-right py-2 pr-1 font-bold">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptBody"></tbody>
+                    </table>
+
+                    <div id="receiptCalendarArea" class="hidden mb-6 border rounded p-3 bg-white/90 backdrop-blur-sm shadow-sm">
+                        <div class="text-center text-xs font-bold text-[#004094] mb-2 flex items-center justify-center gap-1">
+                            📅 수업 일정 상세
+                        </div>
+                        <div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
+                            <div class="text-red-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-400">토</div>
+                        </div>
+                        <div id="receiptMiniCalGrid" class="receipt-cal-grid"></div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4 space-y-2">
+                        <div class="flex justify-between text-gray-600 font-medium">
+                            <span>수강료 소계</span>
+                            <span id="dispSubtotal" class="font-bold text-gray-800">0</span>
+                        </div>
+                        <div class="flex justify-between text-red-500 font-medium" id="dispAdjRow">
+                            <span>이월/초과금 조정</span>
+                            <span id="dispAdj" class="font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t-2 border-gray-800 flex justify-between items-center">
+                        <span class="text-lg font-bold text-gray-900">최종 납부액</span>
+                        <span class="text-3xl font-black text-[#004094]" id="dispTotal">0원</span>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 bg-gray-50/90 p-4 rounded-lg">
+                        <h4 class="font-bold text-[#004094] mb-2 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            수강료 및 수업 안내
+                        </h4>
+                        <ul class="info-list space-y-1">
+                            <li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li>
+                            <li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다. (1:1 수업 당일 취소 건 포함)</li>
+                            <li><b>결제 방법:</b> '결제링크'를 통한 카드 분할 결제, 서울페이/제로페이, 계좌이체 가능합니다.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-6 text-center text-sm font-bold text-gray-500">
+                        <p>문의사항 : 010-4232-7428</p>
+                    </div>
+                </div> </div>
+
+            <button onclick="downloadImage()" class="w-full max-w-md py-3.5 bg-[#004094] text-white font-bold rounded shadow-lg hover:bg-blue-800 transition flex justify-center items-center gap-2 transform active:scale-95">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>학부모 전송용 이미지 저장</span>
             </button>
         </div>
     </div>
@@ -221,6 +257,7 @@
         let currentTab = 'auto'; 
         let excludedDates = new Set(); 
 
+        // 초기 실행
         addAutoRow();
         updateDateContext();
 
@@ -274,27 +311,21 @@
             updateAll();
         }
 
-        function updateLogoFromInput() {
-            const url = document.getElementById('logoUrlInput').value;
-            if(url) document.getElementById('logoImg').src = url;
-        }
-
         function resetAndUpdate() {
             excludedDates.clear(); 
             updateDateContext();
         }
 
-        // [핵심 수정] updateAll()을 마지막에 호출하여 금액 재계산 트리거
         function updateDateContext() {
-            recalcAllAutoCounts(); // 1. 횟수 계산
-            renderCalendar();      // 2. 달력 그리기
-            updateAll();           // 3. 금액 합계 및 영수증 갱신 (여기서 renderReceiptCalendar도 호출됨)
+            recalcAllAutoCounts(); 
+            renderCalendar();      
+            updateAll();           
         }
 
         function toggleDateExclusion(day) {
             if(excludedDates.has(day)) excludedDates.delete(day);
             else excludedDates.add(day);
-            updateDateContext(); // 클릭 시 모든 컨텍스트 업데이트
+            updateDateContext(); 
         }
 
         function renderCalendar() {
@@ -348,21 +379,48 @@
 
             const firstDay = new Date(year, month - 1, 1).getDay(); 
             const lastDate = new Date(year, month, 0).getDate();
-            const activeWeekdays = new Set();
+            const dateSubjects = {}; 
+
             if (currentTab === 'auto') {
-                document.querySelectorAll('.day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
+                document.querySelectorAll('#autoList .auto-row').forEach(row => {
+                    const rawName = row.querySelector('.sub-name').value;
+                    const shortName = rawName.split('-')[0] || "과목"; 
+                    const checkedBoxes = row.querySelectorAll('.day-chk:checked');
+                    const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+                    for(let i=1; i<=lastDate; i++) {
+                        const dayOfWeek = new Date(year, month - 1, i).getDay();
+                        if (activeDays.includes(dayOfWeek) && !excludedDates.has(i)) {
+                            if (!dateSubjects[i]) dateSubjects[i] = [];
+                            dateSubjects[i].push(shortName);
+                        }
+                    }
+                });
             }
 
-            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
+            for(let i=0; i<firstDay; i++) {
+                let emptyDiv = document.createElement('div');
+                emptyDiv.className = "receipt-cal-cell bg-gray-50";
+                calDiv.appendChild(emptyDiv);
+            }
 
             for(let i=1; i<=lastDate; i++) {
-                const dayOfWeek = new Date(year, month - 1, i).getDay();
                 let div = document.createElement('div');
-                div.innerText = i;
-                div.className = "mini-cal-cell "; // 스타일 변경된 클래스 적용
-                if (activeWeekdays.has(dayOfWeek) && !excludedDates.has(i)) {
-                    div.className += "mini-active";
-                }
+                div.className = "receipt-cal-cell";
+                const subjects = dateSubjects[i] || [];
+                const isActive = subjects.length > 0;
+                
+                let dateSpan = document.createElement('div');
+                dateSpan.innerText = i;
+                dateSpan.className = "rc-date " + (isActive ? "rc-active-date" : "");
+                div.appendChild(dateSpan);
+
+                subjects.forEach(subj => {
+                    let subjSpan = document.createElement('div');
+                    subjSpan.innerText = subj;
+                    subjSpan.className = "rc-subject";
+                    div.appendChild(subjSpan);
+                });
                 calDiv.appendChild(div);
             }
         }
@@ -454,7 +512,6 @@
                 const id = row.id.replace('arow-', '');
                 recalcRow(id);
             });
-            // 여기선 render 호출 안함. updateAll()에서 일괄 처리
         }
 
         function updateAll() {
@@ -472,6 +529,40 @@
             let subtotal = 0;
             let exportText = `이름\t년\t월\t과목명\t상세내용\t단가\t금액\n`;
 
+            // [NEW] 텍스트 처리 헬퍼 함수
+            const formatDetails = (text) => {
+                // 숫자+h 또는 숫자+H를 '숫자시간'으로 변경
+                return text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
+            };
+
+            const createSubjectHTML = (rawSubject) => {
+                const parts = rawSubject.split('-');
+                const subject = parts[0];
+                let badge = '';
+                let details = '';
+
+                if(parts.length > 1) {
+                    // 두 번째 부분은 배지(Type)로 만듦
+                    badge = `<span class="type-badge">${parts[1]}</span>`;
+                    // 나머지는 상세 내용으로 처리하되, h->시간 변환 적용
+                    if(parts.length > 2) {
+                        details = parts.slice(2).join(' / ');
+                        details = formatDetails(details);
+                    }
+                }
+                
+                return {
+                    display: `
+                        <div class="flex items-center flex-wrap gap-1">
+                            <span class="font-bold text-gray-800 text-base">${subject}</span>
+                            ${badge}
+                        </div>
+                        ${details ? `<div class="text-xs text-[#004094] mt-0.5 font-medium pl-0.5">${details}</div>` : ''}
+                    `,
+                    raw: rawSubject
+                };
+            };
+
             if (currentTab === 'auto') {
                 document.querySelectorAll('#autoList .auto-row').forEach(row => {
                     const subjectRaw = row.querySelector('.sub-name').value;
@@ -481,15 +572,16 @@
                     if (subjectRaw || count > 0) {
                         const rowTotal = count * rate;
                         subtotal += rowTotal;
-                        const parts = subjectRaw.split('-');
-                        const subjName = parts[0] || subjectRaw;
-                        const details = parts.slice(1).join(' / ');
-                        let subjectDisplay = `<div class="font-bold text-gray-800">${subjName}</div>`;
-                        if (details) subjectDisplay += `<div class="text-xs text-[#004094] mt-1">${details}</div>`;
+                        
+                        const subjObj = createSubjectHTML(subjectRaw);
+
                         tbody.innerHTML += `
-                            <tr class="border-b border-dashed border-gray-200">
-                                <td class="py-3 pr-2">${subjectDisplay}<div class="text-xs text-gray-500 mt-1">${count}회(주) × ${rate.toLocaleString()}원</div></td>
-                                <td class="py-3 text-right font-mono text-lg font-bold text-gray-700">${rowTotal.toLocaleString()}원</td>
+                            <tr class="border-b border-dashed border-gray-200 last:border-0">
+                                <td class="py-3 pl-1 pr-2 align-top">
+                                    ${subjObj.display}
+                                    <div class="text-xs text-gray-500 mt-1 pl-0.5">${count}회(주) × ${rate.toLocaleString()}원</div>
+                                </td>
+                                <td class="py-3 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-top pt-3">${rowTotal.toLocaleString()}원</td>
                             </tr>`;
                         exportText += `${name}\t${year}\t${month}\t${subjectRaw}\t${count}회\t${rate}\t${rowTotal}\n`;
                     }
@@ -503,13 +595,17 @@
                     if (subject || (time > 0 && count > 0)) {
                         const rowTotal = time * count * rate;
                         subtotal += rowTotal;
+                        
+                        // 변동형도 배지 적용
+                        const subjObj = createSubjectHTML(subject);
+
                         tbody.innerHTML += `
-                            <tr class="border-b border-dashed border-gray-200">
-                                <td class="py-3 pr-2">
-                                    <div class="font-bold text-gray-800">${subject}</div>
-                                    <div class="text-xs text-gray-500 mt-1">${time}시간 × ${count}회 × ${rate.toLocaleString()}원</div>
+                            <tr class="border-b border-dashed border-gray-200 last:border-0">
+                                <td class="py-3 pl-1 pr-2 align-top">
+                                    ${subjObj.display}
+                                    <div class="text-xs text-gray-500 mt-1 pl-0.5">${time}시간 × ${count}회 × ${rate.toLocaleString()}원</div>
                                 </td>
-                                <td class="py-3 text-right font-mono text-lg font-bold text-gray-700">${rowTotal.toLocaleString()}원</td>
+                                <td class="py-3 pr-1 text-right font-mono text-lg font-bold text-gray-700 align-top pt-3">${rowTotal.toLocaleString()}원</td>
                             </tr>`;
                         exportText += `${name}\t${year}\t${month}\t${subject}\t${time}h*${count}회\t${rate}\t${rowTotal}\n`;
                     }
@@ -535,7 +631,15 @@
 
         function downloadImage() {
             const captureElement = document.getElementById("captureArea");
-            html2canvas(captureElement, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+            // html2canvas 옵션: scale을 높여 선명도 확보, scrollY로 위치 보정
+            html2canvas(captureElement, { 
+                scale: 3, 
+                useCORS: true, 
+                backgroundColor: "#ffffff",
+                logging: false,
+                windowWidth: captureElement.scrollWidth,
+                windowHeight: captureElement.scrollHeight
+            }).then(canvas => {
                 const link = document.createElement("a");
                 const name = document.getElementById('studentName').value || '학생';
                 const month = document.getElementById('targetMonth').value;
