@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V19</title>
+    <title>에스에듀 반포관 수강료 계산기 V20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; }
         
-        /* 유틸리티 */
+        /* 쉐도우 */
         .receipt-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
         
@@ -29,11 +29,10 @@
         .sun { color: #ef4444; }
         .sat { color: #3b82f6; }
         
-        /* 요일고정형: 기본 활성(Blue) / 클릭 시 제외(Red Strikethrough) */
+        /* 모드별 달력 스타일 */
         .mode-auto .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .mode-auto .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
 
-        /* 선택형: 기본 평범 / 클릭 시 선택(Blue Filled) */
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-select div:hover:not(.selected-day) { background-color: #f3f4f6; }
 
@@ -48,20 +47,12 @@
             padding: 6px 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
         }
-        .rc-date { 
-            font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; 
-        }
+        .rc-date { font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; }
         .rc-subject { 
-            font-size: 0.8rem; 
-            background-color: #eff6ff; color: #004094; 
-            width: 90%; text-align: center; 
-            padding: 4px 0; 
-            border-radius: 4px; 
-            margin-bottom: 2px; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            font-weight: 800; 
-            line-height: 1.2; 
-            display: block; 
+            font-size: 0.8rem; background-color: #eff6ff; color: #004094; 
+            width: 90%; text-align: center; padding: 4px 0; border-radius: 4px; 
+            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            font-weight: 800; line-height: 1.2; display: block; 
         }
         .rc-active-date { color: #1f2937; }
 
@@ -72,8 +63,7 @@
         .badge-base {
             display: inline-flex; align-items: center; justify-content: center;
             height: 26px; padding: 0 10px; font-size: 0.8rem; 
-            border-radius: 6px; font-weight: 700; margin-left: 6px;
-            vertical-align: middle; line-height: 1;
+            border-radius: 6px; font-weight: 700; margin-left: 6px; vertical-align: middle; line-height: 1;
         }
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
@@ -96,6 +86,9 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 활성화된 행 강조 */
+        .active-row { border: 2px solid #004094 !important; background-color: #f0f7ff !important; }
 
         #pasteAreaContainer { transition: all 0.3s ease; }
         .no-wrap-cell { white-space: nowrap; }
@@ -128,7 +121,10 @@
                 <div class="mt-6 pt-4 border-t border-gray-100">
                     <div class="flex justify-between items-center mb-2">
                         <span id="calTitle" class="text-[#004094] text-xs font-bold">12월 설정</span>
-                        <span id="calBadge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">모드 선택 필요</span>
+                        <span id="calBadge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">대기</span>
+                    </div>
+                    <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">
+                        👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.
                     </div>
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
@@ -161,9 +157,6 @@
                         <button onclick="addAutoRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가 (고정형)</button>
                     </div>
                     <div id="tab-select" class="hidden">
-                        <div class="mb-2 p-2 bg-blue-50 text-[11px] text-[#004094] rounded border border-blue-100">
-                            💡 상단 달력에서 <b>원하는 날짜를 클릭</b>하면 횟수에 반영됩니다.
-                        </div>
                         <div id="selectList" class="space-y-3"></div>
                         <button onclick="addSelectRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가 (선택형)</button>
                     </div>
@@ -181,11 +174,8 @@
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
-            
             <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-8 bg-white">
-                
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" class="watermark-img" crossorigin="anonymous">
-
                 <div class="receipt-content">
                     <div class="text-center mb-10 relative z-20">
                         <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" crossorigin="anonymous" class="h-24 mx-auto mb-3 object-contain">
@@ -205,7 +195,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <table class="w-full text-base mb-8">
                             <thead>
                                 <tr class="text-gray-500 border-b-2 border-gray-200">
@@ -215,7 +204,6 @@
                             </thead>
                             <tbody id="receiptBody"></tbody>
                         </table>
-
                         <div class="border-t-2 border-gray-200 pt-4 space-y-3 mb-8">
                             <div class="flex justify-between text-gray-600 font-bold text-lg">
                                 <span>수강료 소계</span>
@@ -226,12 +214,10 @@
                                 <span id="dispAdj">0</span>
                             </div>
                         </div>
-
                         <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100">
                             <span class="text-xl font-black text-gray-800">최종 납부액</span>
                             <span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span>
                         </div>
-                        
                         <div class="mt-8 text-xs text-gray-500 font-medium">
                             <p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p>
                             <p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 수강료 내역입니다.</p>
@@ -249,7 +235,6 @@
                             </div>
                             <div id="receiptMiniCalGrid" class="receipt-cal-grid rounded-lg overflow-hidden"></div>
                         </div>
-
                         <div class="bg-gray-50 p-5 rounded-xl text-sm text-gray-600 border border-gray-100 shadow-inner">
                             <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-base">
                                 <span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span>
@@ -263,7 +248,6 @@
                     </div>
                 </div> 
             </div>
-
             <button onclick="downloadImage()" class="w-full max-w-[1100px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1 text-lg">
                 <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
             </button>
@@ -272,26 +256,36 @@
 
     <script>
         let currentTab = 'auto'; 
-        let excludedDates = new Set(); // 요일고정형용 제외일
-        let selectedDates = new Set(); // 선택형용 선택일
+        let excludedDates = new Set(); // 고정형 전용 (전역 제외)
+        let activeSelectRowId = null;  // 선택형: 현재 편집 중인 행 ID
+        const selectRowDates = {};     // 선택형: 행별 날짜 데이터 { rowId: Set() }
 
         addAutoRow();
         updateDateContext();
 
         function switchTab(tab) {
             currentTab = tab;
-            // 탭 컨텐츠 표시/숨김
             ['auto', 'select', 'manual'].forEach(t => {
                 document.getElementById(`tab-${t}`).className = t === tab ? 'block' : 'hidden';
-                // 버튼 스타일
                 const btn = document.getElementById(`btn-${t}`);
-                if(t === tab) {
-                    btn.className = "flex-1 py-3 text-xs font-bold text-center bg-[#004094]/5 text-[#004094] border-b-2 border-[#004094]";
-                } else {
-                    btn.className = "flex-1 py-3 text-xs font-bold text-center text-gray-400 hover:text-gray-600";
-                }
+                btn.className = t === tab 
+                    ? "flex-1 py-3 text-xs font-bold text-center bg-[#004094]/5 text-[#004094] border-b-2 border-[#004094]"
+                    : "flex-1 py-3 text-xs font-bold text-center text-gray-400 hover:text-gray-600";
             });
-            updateDateContext(); // 모드 변경 시 달력 갱신
+            
+            // 모드 변경 시 UI 업데이트
+            if (tab === 'select') {
+                document.getElementById('selectGuide').classList.remove('hidden');
+                if(!activeSelectRowId) {
+                    // 선택형 탭에 진입했는데 활성 행이 없으면 첫번째 행 활성화 시도
+                    const firstRow = document.querySelector('.select-row');
+                    if(firstRow) setActiveSelectRow(firstRow.id.replace('srow-', ''));
+                }
+            } else {
+                document.getElementById('selectGuide').classList.add('hidden');
+                activeSelectRowId = null; // 다른 탭에선 선택 해제
+            }
+            updateDateContext();
         }
 
         function togglePasteArea() {
@@ -312,7 +306,6 @@
                 const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i);
                 if (timeMatch) detectedTime = parseFloat(timeMatch[1]);
                 
-                // 탭에 따라 행 추가
                 if (currentTab === 'manual') addManualRow(cleanName, detectedTime);
                 else if (currentTab === 'select') addSelectRow(cleanName);
                 else addAutoRow(cleanName); 
@@ -324,7 +317,10 @@
 
         function resetAndUpdate() {
             excludedDates.clear(); 
-            selectedDates.clear(); // 연/월 변경 시 초기화
+            // 선택형 날짜들도 초기화할지는 정책 나름이나, 보통 월 바뀌면 초기화가 맞음
+            for (const key in selectRowDates) {
+                selectRowDates[key].clear();
+            }
             updateDateContext();
         }
 
@@ -335,16 +331,19 @@
         }
 
         function toggleDateInteraction(day) {
-            if (currentTab === 'select') {
-                // 선택형: 선택 목록에 추가/제거
-                if(selectedDates.has(day)) selectedDates.delete(day);
-                else selectedDates.add(day);
-            } else if (currentTab === 'auto') {
-                // 고정형: 제외 목록에 추가/제거
+            if (currentTab === 'auto') {
                 if(excludedDates.has(day)) excludedDates.delete(day);
                 else excludedDates.add(day);
+            } else if (currentTab === 'select') {
+                if (activeSelectRowId && selectRowDates[activeSelectRowId]) {
+                    const rowDates = selectRowDates[activeSelectRowId];
+                    if(rowDates.has(day)) rowDates.delete(day);
+                    else rowDates.add(day);
+                } else {
+                    alert("먼저 아래 목록에서 날짜를 설정할 과목을 클릭하세요!");
+                    return;
+                }
             }
-            // 변동형은 달력 조작 없음
             updateDateContext(); 
         }
 
@@ -356,22 +355,27 @@
             const calBadge = document.getElementById('calBadge');
             
             calTitle.innerText = `${month}월 설정`;
-            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; // 초기화
+            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; 
 
             if(currentTab === 'auto') {
-                calBadge.innerText = "날짜 클릭 = 휴강(제외)";
+                calBadge.innerText = "휴강(제외) 설정 중";
                 calBadge.className = "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold";
                 calDiv.classList.add('mode-auto');
-                calDiv.classList.remove('mode-select');
             } else if(currentTab === 'select') {
-                calBadge.innerText = "날짜 클릭 = 수업(선택)";
-                calBadge.className = "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold";
-                calDiv.classList.add('mode-select');
-                calDiv.classList.remove('mode-auto');
+                if (activeSelectRowId) {
+                    // 현재 선택된 과목명 가져오기
+                    const row = document.getElementById(`srow-${activeSelectRowId}`);
+                    const subjName = row ? row.querySelector('.sub-name').value : '과목';
+                    calBadge.innerText = `[${subjName.substr(0,5)}..] 날짜 선택 중`;
+                    calBadge.className = "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold";
+                    calDiv.classList.add('mode-select');
+                } else {
+                    calBadge.innerText = "과목을 선택하세요";
+                    calBadge.className = "text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded";
+                }
             } else {
-                calBadge.innerText = "달력 사용 안함";
+                calBadge.innerText = "달력 미사용";
                 calBadge.className = "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded";
-                calDiv.classList.remove('mode-auto', 'mode-select');
             }
 
             calDiv.innerHTML = ''; 
@@ -380,7 +384,6 @@
             const lastDate = new Date(year, month, 0).getDate();
             const activeWeekdays = new Set();
             
-            // 고정형일 때만 요일 활성화 체크
             if (currentTab === 'auto') {
                 document.querySelectorAll('#tab-auto .day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
             }
@@ -393,7 +396,6 @@
                 let div = document.createElement('div');
                 div.innerText = i;
                 
-                // 모드별 렌더링
                 if(currentTab === 'auto') {
                     const isExcluded = excludedDates.has(i);
                     const isActiveDay = activeWeekdays.has(dayOfWeek);
@@ -404,14 +406,20 @@
                         if(dayOfWeek === 6) div.className += " sat";
                     }
                 } else if (currentTab === 'select') {
-                    const isSelected = selectedDates.has(i);
-                    if (isSelected) div.className = "selected-day";
-                    else {
+                    // 선택형: 현재 활성 행의 데이터만 보여줌
+                    if (activeSelectRowId && selectRowDates[activeSelectRowId]) {
+                        const isSelected = selectRowDates[activeSelectRowId].has(i);
+                        if (isSelected) div.className = "selected-day";
+                        else {
+                            if(dayOfWeek === 0) div.className += " sun";
+                            if(dayOfWeek === 6) div.className += " sat";
+                        }
+                    } else {
+                         // 활성 행 없으면 기본
                         if(dayOfWeek === 0) div.className += " sun";
                         if(dayOfWeek === 6) div.className += " sat";
                     }
                 } else {
-                    // Manual mode: just show days
                     if(dayOfWeek === 0) div.className += " sun";
                     if(dayOfWeek === 6) div.className += " sat";
                 }
@@ -433,40 +441,35 @@
             const lastDate = new Date(year, month, 0).getDate();
             const dateSubjects = {}; 
 
-            // 과목 수집 로직
-            const collectSubjects = (row, type) => {
+            // 1. 고정형 데이터 수집
+            document.querySelectorAll('#autoList .auto-row').forEach(row => {
                 const rawName = row.querySelector('.sub-name').value;
                 const shortName = rawName.split('-')[0] || "과목"; 
-                
-                if (type === 'auto') {
-                    const checkedBoxes = row.querySelectorAll('.day-chk:checked');
-                    const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-                    for(let i=1; i<=lastDate; i++) {
-                        const dayOfWeek = new Date(year, month - 1, i).getDay();
-                        if (activeDays.includes(dayOfWeek) && !excludedDates.has(i)) {
-                            if (!dateSubjects[i]) dateSubjects[i] = [];
-                            dateSubjects[i].push(shortName);
-                        }
+                const checkedBoxes = row.querySelectorAll('.day-chk:checked');
+                const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+                for(let i=1; i<=lastDate; i++) {
+                    const dayOfWeek = new Date(year, month - 1, i).getDay();
+                    if (activeDays.includes(dayOfWeek) && !excludedDates.has(i)) {
+                        if (!dateSubjects[i]) dateSubjects[i] = [];
+                        dateSubjects[i].push(shortName);
                     }
-                } else if (type === 'select') {
-                    // 선택형: selectedDates에 있는 날짜에 과목 추가
-                    selectedDates.forEach(day => {
-                        if (!dateSubjects[day]) dateSubjects[day] = [];
-                        dateSubjects[day].push(shortName);
+                }
+            });
+
+            // 2. 선택형 데이터 수집 (모든 선택형 행 순회)
+            document.querySelectorAll('#selectList .select-row').forEach(row => {
+                const id = row.id.replace('srow-', '');
+                const rawName = row.querySelector('.sub-name').value;
+                const shortName = rawName.split('-')[0] || "과목";
+                
+                if (selectRowDates[id]) {
+                    selectRowDates[id].forEach(date => {
+                        if (!dateSubjects[date]) dateSubjects[date] = [];
+                        dateSubjects[date].push(shortName);
                     });
                 }
-            };
-
-            // 활성화된 탭의 과목만 표시할지, 아니면 입력된 모든 과목을 표시할지?
-            // 사용자 의도: "선택형 탭"에 있으면 선택형 방식으로 계산됨. 
-            // 영수증에는 현재 탭의 내용만 나오는 것이 일반적임. (또는 혼용?)
-            // 구조상 updateAll에서 현재 탭의 row만 계산하므로, 달력도 현재 탭 기준이 맞음.
-            
-            if (currentTab === 'auto') {
-                document.querySelectorAll('#autoList .auto-row').forEach(row => collectSubjects(row, 'auto'));
-            } else if (currentTab === 'select') {
-                document.querySelectorAll('#selectList .select-row').forEach(row => collectSubjects(row, 'select'));
-            }
+            });
 
             for(let i=0; i<firstDay; i++) {
                 let emptyDiv = document.createElement('div');
@@ -485,7 +488,7 @@
                 dateSpan.className = "rc-date " + (isActive ? "rc-active-date" : "");
                 div.appendChild(dateSpan);
 
-                // 중복 제거 (같은 과목이 여러번 찍히지 않게)
+                // 중복 제거
                 const uniqueSubjects = [...new Set(subjects)];
                 uniqueSubjects.forEach(subj => {
                     let subjSpan = document.createElement('div');
@@ -497,7 +500,40 @@
             }
         }
 
-        // --- 행 추가 함수들 ---
+        // --- 선택형 로직 (Active Row) ---
+        function setActiveSelectRow(id) {
+            activeSelectRowId = id;
+            // UI Highlight
+            document.querySelectorAll('.select-row').forEach(r => r.classList.remove('active-row'));
+            const currentRow = document.getElementById(`srow-${id}`);
+            if(currentRow) currentRow.classList.add('active-row');
+            
+            updateDateContext(); // 달력 갱신
+        }
+
+        function addSelectRow(nameVal = '') {
+            const id = Date.now() + Math.random().toString(36).substr(2, 5);
+            selectRowDates[id] = new Set(); // 날짜 저장소 초기화
+
+            const html = `
+                <div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row cursor-pointer transition hover:border-blue-400" id="srow-${id}" onclick="setActiveSelectRow('${id}')">
+                    <button onclick="event.stopPropagation(); removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
+                    <div class="mb-3">
+                        <input type="text" class="sub-name w-full text-base font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-보충" value="${nameVal}" oninput="updateAll()">
+                    </div>
+                    <div class="flex gap-2 bg-blue-50 p-2 rounded items-center">
+                        <span class="text-xs font-bold text-[#004094]">선택일:</span>
+                        <input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0">
+                        <span class="text-xs font-bold text-gray-400">회 ×</span>
+                        <input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()">
+                    </div>
+                    <div class="mt-1 text-[10px] text-blue-400 text-right">* 이 박스를 클릭하고 달력을 찍으세요</div>
+                </div>`;
+            document.getElementById('selectList').insertAdjacentHTML('beforeend', html);
+            setActiveSelectRow(id); // 생성 즉시 활성화
+        }
+
+        // --- 기존 로직 ---
         function addManualRow(nameVal = '', timeVal = '') {
             const id = Date.now() + Math.random(); 
             const html = `
@@ -553,27 +589,15 @@
             updateAll();
         }
 
-        // [NEW] 선택형 행 추가
-        function addSelectRow(nameVal = '') {
-            const id = Date.now() + Math.random();
-            const html = `
-                <div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row" id="srow-${id}">
-                    <button onclick="removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                    <div class="mb-3">
-                        <input type="text" class="sub-name w-full text-base font-bold border-b border-gray-200 p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-특강-2h" value="${nameVal}" oninput="updateAll()">
-                    </div>
-                    <div class="flex gap-2 bg-blue-50 p-2 rounded items-center">
-                        <span class="text-xs font-bold text-[#004094]">선택일:</span>
-                        <input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0">
-                        <span class="text-xs font-bold text-gray-400">회 ×</span>
-                        <input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()">
-                    </div>
-                </div>`;
-            document.getElementById('selectList').insertAdjacentHTML('beforeend', html);
-            updateDateContext(); // 생성 시 현재 선택된 날짜 수 반영
+        function removeEl(id) { 
+            document.getElementById(id).remove(); 
+            if(id.startsWith('srow-')) {
+                const realId = id.replace('srow-', '');
+                delete selectRowDates[realId];
+                if(activeSelectRowId === realId) activeSelectRowId = null;
+            }
+            updateAll(); 
         }
-
-        function removeEl(id) { document.getElementById(id).remove(); updateAll(); }
 
         function recalcRow(rowIdSuffix, type) {
             if (type === 'auto') {
@@ -592,8 +616,7 @@
                 }
                 document.getElementById(`cnt-${rowIdSuffix}`).value = count;
             } else if (type === 'select') {
-                // 선택형은 무조건 selectedDates의 크기가 횟수
-                document.getElementById(`cnt-${rowIdSuffix}`).value = selectedDates.size;
+                document.getElementById(`cnt-${rowIdSuffix}`).value = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0;
             }
         }
 
@@ -621,8 +644,6 @@
             tbody.innerHTML = '';
             
             let subtotal = 0;
-            let exportText = `이름\t년\t월\t과목명\t상세내용\t단가\t금액\n`;
-
             const formatDetails = (text) => text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
 
             const createSubjectHTML = (rawSubject) => {
@@ -674,7 +695,6 @@
                     rowTotal = time * count * rate;
                     detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
                 } else {
-                    // auto, select 둘 다 count input에서 값 가져옴
                     count = parseFloat(row.querySelector('.sub-count').value) || 0;
                     rowTotal = count * rate;
                     detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
