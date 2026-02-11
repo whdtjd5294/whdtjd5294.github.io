@@ -17,7 +17,7 @@
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
-        /* 달력 스타일 */
+        /* 달력 공통 */
         .calendar-grid div { 
             width: 32px; height: 32px; 
             display: flex; align-items: center; justify-content: center;
@@ -27,20 +27,21 @@
         .sun { color: #ef4444; }
         .sat { color: #3b82f6; }
         
+        /* 모드별 스타일 */
         .mode-auto .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .mode-auto .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
 
-        /* 영수증 달력 */
+        /* 영수증 내부 달력 */
         .receipt-cal-grid { 
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
             background-color: #e5e7eb; border: 1px solid #e5e7eb; 
         }
         .receipt-cal-cell { 
             background-color: white; 
-            min-height: 65px; 
-            padding: 6px 0; 
+            min-height: 70px; /* 높이 넉넉하게 확보 */
+            padding: 4px 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
         }
         .rc-date { font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; }
@@ -53,6 +54,7 @@
         .rc-subject-history { background-color: #ecfdf5; color: #065f46; }
         .rc-active-date { color: #1f2937; }
 
+        /* 텍스트 정렬 */
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
 
         .badge-base {
@@ -120,7 +122,6 @@
                     <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">
                         👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.
                     </div>
-                    
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
                     </div>
@@ -264,33 +265,38 @@
     </div>
 
     <script>
+        // 전역 상태
         let currentTab = 'auto'; 
         let excludedDates = new Set(); 
         let activeSelectRowId = null;  
         const selectRowDates = {};     
         let historyData = [];
+        let rowCounter = 0; // [수정] 안전한 ID 생성을 위한 카운터
 
+        // [초기화] 페이지 로드 시 실행
         window.onload = function() {
-            // 현재 날짜 설정
+            // 날짜 초기화 (현재 날짜)
             const now = new Date();
             document.getElementById('targetYear').value = now.getFullYear();
             document.getElementById('targetMonth').value = now.getMonth() + 1;
             
-            // 초기 행 추가
-            addAutoRow();
-            // 탭 초기화
+            // 첫 번째 탭(요일 고정형) 초기화
+            addAutoRow(); 
             switchTab('auto'); 
         };
 
+        // [안전한 ID 생성기] 단순 숫자로 변경하여 오류 방지
         function generateSafeId() {
-            // [중요] 소수점이 없는 안전한 ID 생성
-            return 'id_' + Date.now().toString(36) + '_' + Math.floor(Math.random() * 1000).toString();
+            rowCounter++;
+            return `item_${rowCounter}`;
         }
 
+        // [탭 전환]
         function switchTab(tab) {
             currentTab = tab;
             ['auto', 'select', 'manual', 'history'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+                
                 const btn = document.getElementById(`btn-${t}`);
                 if(t === tab) {
                     let colorClass = t === 'history' ? 'bg-green-50 text-green-700 border-green-600' : 'bg-[#004094]/5 text-[#004094] border-[#004094]';
@@ -300,14 +306,13 @@
                 }
             });
 
-            // UI 모드 전환
             const isHistory = (tab === 'history');
             document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
-            
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             document.getElementById('infoBox').classList.toggle('hidden', isHistory);
             
+            // 텍스트 및 스타일 변경
             document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
             document.getElementById('dateBadge').className = isHistory 
@@ -325,11 +330,12 @@
 
             document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
 
-            // 화면 갱신
+            // [핵심 수정] 탭 전환 시 즉시 문맥 업데이트 (계산 다시 수행)
             if (isHistory) updateHistoryView();
             else updateDateContext();
         }
 
+        // [이력 데이터 처리]
         function processHistoryPaste() {
             const raw = document.getElementById('historyPasteInput').value;
             const lines = raw.split('\n');
@@ -466,6 +472,7 @@
             }
         }
 
+        // [일반 기능]
         function togglePasteArea() {
             document.getElementById('pasteAreaContainer').classList.toggle('hidden');
         }
@@ -501,8 +508,8 @@
         function updateDateContext() {
             if(currentTab === 'history') return;
             renderCalendar();      
-            recalcAllAutoCounts(); 
-            updateAll();           
+            recalcAllAutoCounts(); // 여기서 횟수 재계산
+            updateAll();           // 여기서 영수증 표시
         }
 
         function toggleDateExclusion(day) {
@@ -550,7 +557,7 @@
             const activeWeekdays = new Set();
             
             if (currentTab === 'auto') {
-                // 안전한 ID Selector 사용
+                // 안전한 ID 셀렉터 사용
                 const rows = document.querySelectorAll('#autoList .auto-row');
                 rows.forEach(row => {
                     const checkboxes = row.querySelectorAll('.day-chk:checked');
@@ -572,13 +579,11 @@
             }
         }
 
-        // --- 계산 로직 (안전한 ID 적용) ---
         function recalcRow(rowIdSuffix, type) {
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
             
             if (type === 'auto') {
-                // 안전한 ID 셀렉터 사용
                 const row = document.getElementById(`arow-${rowIdSuffix}`);
                 if (!row) return; 
 
