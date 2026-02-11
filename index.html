@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V24</title>
+    <title>에스에듀 반포관 수강료 계산기 V25</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -13,75 +13,38 @@
         
         .receipt-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
-        
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
-        /* 달력 공통 */
-        .calendar-grid div { 
-            width: 32px; height: 32px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; margin: 2px auto; 
-            border-radius: 50%; transition: all 0.2s; cursor: pointer; 
-        }
-        .sun { color: #ef4444; }
-        .sat { color: #3b82f6; }
+        .calendar-grid div { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; margin: 2px auto; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
+        .sun { color: #ef4444; } .sat { color: #3b82f6; }
         
-        /* 모드별 스타일 */
         .mode-auto .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .mode-auto .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
 
-        /* 영수증 내부 달력 */
-        .receipt-cal-grid { 
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
-            background-color: #e5e7eb; border: 1px solid #e5e7eb; 
-        }
-        .receipt-cal-cell { 
-            background-color: white; 
-            min-height: 70px; /* 높이 넉넉하게 확보 */
-            padding: 4px 0; 
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-        }
+        .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
+        .receipt-cal-cell { background-color: white; min-height: 70px; padding: 4px 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         .rc-date { font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; }
-        .rc-subject { 
-            font-size: 0.8rem; background-color: #eff6ff; color: #004094; 
-            width: 90%; text-align: center; padding: 4px 0; border-radius: 4px; 
-            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            font-weight: 800; line-height: 1.2; display: block; 
-        }
+        .rc-subject { font-size: 0.8rem; background-color: #eff6ff; color: #004094; width: 92%; text-align: center; padding: 4px 0; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; line-height: 1.2; display: block; }
         .rc-subject-history { background-color: #ecfdf5; color: #065f46; }
         .rc-active-date { color: #1f2937; }
-
-        /* 텍스트 정렬 */
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
 
-        .badge-base {
-            display: inline-flex; align-items: center; justify-content: center;
-            height: 26px; padding: 0 10px; font-size: 0.8rem; 
-            border-radius: 6px; font-weight: 700; margin-left: 6px; vertical-align: middle; line-height: 1;
-        }
+        .badge-base { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px; font-size: 0.8rem; border-radius: 6px; font-weight: 700; margin-left: 6px; vertical-align: middle; line-height: 1; }
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
-        #captureArea { 
-            position: relative; overflow: hidden; background-color: white;
-            max-width: 1100px; width: 1100px;
-        }
-        .watermark-img {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50%; opacity: 0.05; pointer-events: none; z-index: 0;
-        }
+        #captureArea { position: relative; overflow: hidden; background-color: white; max-width: 1100px; width: 1100px; }
+        .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
         .receipt-content { position: relative; z-index: 10; display: flex; gap: 3rem; width: 100%; }
-        .receipt-left { flex: 1.3; }
-        .receipt-right { flex: 1; display: flex; flex-direction: column; }
+        .receipt-left { flex: 1.3; } .receipt-right { flex: 1; display: flex; flex-direction: column; }
 
         .custom-scroll::-webkit-scrollbar { width: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
         .active-row { border: 2px solid #004094 !important; background-color: #f0f7ff !important; }
         #pasteAreaContainer { transition: all 0.3s ease; }
         .no-wrap-cell { white-space: nowrap; }
@@ -97,31 +60,20 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">학생 이름</label>
-                        <input type="text" id="studentName" placeholder="이름" class="w-full p-3 border border-gray-300 rounded-lg text-sm focus:border-[#004094] focus:outline-none transition" oninput="updateAll()">
+                        <input type="text" id="studentName" placeholder="이름" class="w-full p-3 border border-gray-300 rounded-lg text-sm focus:border-[#004094] focus:outline-none" oninput="updateAll()">
                     </div>
                     <div class="flex gap-3">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">연도</label>
-                            <input type="number" id="targetYear" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
-                        </div>
-                        <div class="flex-1 relative">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">월</label>
-                            <input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()">
-                        </div>
+                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetYear" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
+                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">월</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
                     </div>
                 </div>
-
                 <div class="mt-6 pt-4 border-t border-gray-100">
                     <div class="flex justify-between items-center mb-2">
                         <span id="calTitle" class="text-[#004094] text-xs font-bold">달력 설정</span>
                         <span id="calBadge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">대기</span>
                     </div>
-                    <div id="historyGuide" class="hidden text-[10px] text-green-600 bg-green-50 p-2 rounded mb-2 border border-green-100 text-center">
-                        ✅ Access 데이터 기반 <b>수강 이력</b> 표시 중
-                    </div>
-                    <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">
-                        👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.
-                    </div>
+                    <div id="historyGuide" class="hidden text-[10px] text-green-600 bg-green-50 p-2 rounded mb-2 border border-green-100 text-center">✅ Access 데이터 기반 <b>수강 이력</b> 표시 중</div>
+                    <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.</div>
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
                     </div>
@@ -131,8 +83,7 @@
 
             <div id="smartPasteSection" class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-inner">
                 <div class="flex justify-between items-center cursor-pointer" onclick="togglePasteArea()">
-                    <h3 class="text-sm font-bold text-[#004094]">📋 [계산기] 반명 붙여넣기</h3>
-                    <span id="pasteIcon" class="text-[#004094] text-xs">▼</span>
+                    <h3 class="text-sm font-bold text-[#004094]">📋 [계산기] 반명 붙여넣기</h3><span id="pasteIcon" class="text-[#004094] text-xs">▼</span>
                 </div>
                 <div id="pasteAreaContainer" class="hidden mt-3">
                     <textarea id="smartPasteInput" class="w-full h-24 text-xs p-3 border border-blue-200 rounded focus:outline-none resize-none bg-white" placeholder="예: 국어-개별(홍길동)-2h"></textarea>
@@ -147,7 +98,6 @@
                     <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400">변동형</button>
                     <button onclick="switchTab('history')" id="btn-history" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-green-600 hover:text-green-700 bg-green-50">이력확인</button>
                 </div>
-                
                 <div class="p-4 bg-gray-50 h-[450px] overflow-y-auto custom-scroll">
                     <div id="tab-auto" class="hidden">
                         <div id="autoList" class="space-y-3"></div>
@@ -164,12 +114,11 @@
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
                             <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 데이터 붙여넣기</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 여기에 붙여넣으세요.&#13;&#10;(연결/일자/반명/관/출결/TR...)"></textarea>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access 데이터..."></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
                     </div>
                 </div>
-
                 <div id="adjustmentArea" class="p-4 border-t bg-white flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.05)] relative z-10">
                     <label class="text-xs font-bold text-gray-600">이월/초과금 (+/-)</label>
                     <input type="number" id="adjustment" value="0" class="w-32 p-2 border border-gray-300 rounded text-right text-sm font-bold" oninput="updateAll()">
@@ -186,117 +135,64 @@
                         <h1 class="text-3xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
                         <p id="receiptSubTitle" class="text-sm text-gray-500 font-bold tracking-widest">수강료 안내서</p>
                     </div>
-
                     <div class="receipt-left">
                         <div class="flex justify-between items-end border-b-4 border-gray-800 pb-4 mb-8">
-                            <div>
-                                <span class="text-sm text-gray-500 font-bold block mb-1">학생명</span>
-                                <h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3>
-                            </div>
-                            <div>
-                                <div id="dateBadge" class="bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center">
-                                    <span id="dispDate" class="text-lg text-optical-center">2026년 2월분</span>
-                                </div>
-                            </div>
+                            <div><span class="text-sm text-gray-500 font-bold block mb-1">학생명</span><h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3></div>
+                            <div><div id="dateBadge" class="bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center"><span id="dispDate" class="text-lg text-optical-center">2026년 2월분</span></div></div>
                         </div>
-
                         <table class="w-full text-base mb-8">
-                            <thead>
-                                <tr class="text-gray-500 border-b-2 border-gray-200">
-                                    <th class="text-left py-3 pl-1 font-extrabold text-lg">과목 / 상세 내용</th>
-                                    <th id="thAmount" class="text-right py-3 pr-1 font-extrabold w-36 text-lg">금액</th>
-                                </tr>
-                            </thead>
+                            <thead><tr class="text-gray-500 border-b-2 border-gray-200"><th class="text-left py-3 pl-1 font-extrabold text-lg">과목 / 상세 내용</th><th id="thAmount" class="text-right py-3 pr-1 font-extrabold w-36 text-lg">금액</th></tr></thead>
                             <tbody id="receiptBody"></tbody>
                         </table>
-
                         <div id="priceSummaryArea">
                             <div class="border-t-2 border-gray-200 pt-4 space-y-3 mb-8">
-                                <div class="flex justify-between text-gray-600 font-bold text-lg">
-                                    <span>수강료 소계</span>
-                                    <span id="dispSubtotal" class="text-gray-800">0</span>
-                                </div>
-                                <div class="flex justify-between text-red-500 font-bold text-lg" id="dispAdjRow">
-                                    <span>이월/초과금 조정</span>
-                                    <span id="dispAdj">0</span>
-                                </div>
+                                <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료 소계</span><span id="dispSubtotal" class="text-gray-800">0</span></div>
+                                <div class="flex justify-between text-red-500 font-bold text-lg" id="dispAdjRow"><span>이월/초과금 조정</span><span id="dispAdj">0</span></div>
                             </div>
-                            <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100">
-                                <span class="text-xl font-black text-gray-800">최종 납부액</span>
-                                <span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span>
-                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">최종 납부액</span><span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span></div>
                         </div>
-                        
-                        <div class="mt-8 text-xs text-gray-500 font-medium">
-                            <p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p>
-                            <p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p>
-                        </div>
+                        <div class="mt-8 text-xs text-gray-500 font-medium"><p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p><p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p></div>
                     </div>
-
                     <div class="receipt-right">
                         <div id="receiptCalendarArea" class="mb-6 border-2 border-[#004094]/10 rounded-2xl p-6 bg-white/90 backdrop-blur-sm shadow-sm flex-1">
-                            <div class="text-center text-sm font-black text-[#004094] mb-4 flex items-center justify-center gap-2">
-                                <span class="text-lg">📅</span> 
-                                <span id="calTitleReceipt" class="text-optical-center">수업 일정 상세</span>
-                            </div>
-                            <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2 pb-2 border-b border-gray-200">
-                                <div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-[#004094]">토</div>
-                            </div>
+                            <div class="text-center text-sm font-black text-[#004094] mb-4 flex items-center justify-center gap-2"><span class="text-lg">📅</span><span id="calTitleReceipt" class="text-optical-center">수업 일정 상세</span></div>
+                            <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2 pb-2 border-b border-gray-200"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-[#004094]">토</div></div>
                             <div id="receiptMiniCalGrid" class="receipt-cal-grid rounded-lg overflow-hidden"></div>
                         </div>
-
                         <div id="infoBox" class="bg-gray-50 p-5 rounded-xl text-sm text-gray-600 border border-gray-100 shadow-inner">
-                            <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-base">
-                                <span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span>
-                            </h4>
-                            <ul class="info-list font-medium">
-                                <li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li>
-                                <li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다.</li>
-                                <li><b>결제 방법:</b> '결제링크', 서울페이/제로페이, 계좌이체 가능합니다.</li>
-                            </ul>
+                            <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-base"><span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span></h4>
+                            <ul class="info-list font-medium"><li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li><li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다.</li><li><b>결제 방법:</b> '결제링크', 서울페이/제로페이, 계좌이체 가능합니다.</li></ul>
                         </div>
                     </div>
                 </div> 
             </div>
-            <button onclick="downloadImage()" class="w-full max-w-[1100px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1 text-lg">
-                <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
-            </button>
+            <button onclick="downloadImage()" class="w-full max-w-[1100px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1 text-lg"><span class="text-optical-center">📸 학부모 전송용 이미지 저장</span></button>
         </div>
     </div>
 
     <script>
-        // 전역 상태
         let currentTab = 'auto'; 
         let excludedDates = new Set(); 
         let activeSelectRowId = null;  
         const selectRowDates = {};     
         let historyData = [];
-        let rowCounter = 0; // [수정] 안전한 ID 생성을 위한 카운터
+        let rowCounter = 0;
 
-        // [초기화] 페이지 로드 시 실행
         window.onload = function() {
-            // 날짜 초기화 (현재 날짜)
             const now = new Date();
             document.getElementById('targetYear').value = now.getFullYear();
             document.getElementById('targetMonth').value = now.getMonth() + 1;
-            
-            // 첫 번째 탭(요일 고정형) 초기화
-            addAutoRow(); 
+            addAutoRow();
             switchTab('auto'); 
         };
 
-        // [안전한 ID 생성기] 단순 숫자로 변경하여 오류 방지
-        function generateSafeId() {
-            rowCounter++;
-            return `item_${rowCounter}`;
-        }
+        function generateSafeId() { return 'item_' + (++rowCounter); }
+        function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
 
-        // [탭 전환]
         function switchTab(tab) {
             currentTab = tab;
             ['auto', 'select', 'manual', 'history'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
-                
                 const btn = document.getElementById(`btn-${t}`);
                 if(t === tab) {
                     let colorClass = t === 'history' ? 'bg-green-50 text-green-700 border-green-600' : 'bg-[#004094]/5 text-[#004094] border-[#004094]';
@@ -305,60 +201,33 @@
                     btn.className = "flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400 hover:text-gray-600";
                 }
             });
-
             const isHistory = (tab === 'history');
             document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             document.getElementById('infoBox').classList.toggle('hidden', isHistory);
-            
-            // 텍스트 및 스타일 변경
             document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
-            document.getElementById('dateBadge').className = isHistory 
-                ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' 
-                : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
-            
+            document.getElementById('dateBadge').className = isHistory ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
             const capArea = document.getElementById('captureArea');
-            if(isHistory) {
-                capArea.classList.remove('border-[#004094]');
-                capArea.classList.add('border-green-600');
-            } else {
-                capArea.classList.remove('border-green-600');
-                capArea.classList.add('border-[#004094]');
-            }
-
+            if(isHistory) { capArea.classList.remove('border-[#004094]'); capArea.classList.add('border-green-600'); } 
+            else { capArea.classList.remove('border-green-600'); capArea.classList.add('border-[#004094]'); }
             document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
-
-            // [핵심 수정] 탭 전환 시 즉시 문맥 업데이트 (계산 다시 수행)
-            if (isHistory) updateHistoryView();
-            else updateDateContext();
+            if (isHistory) updateHistoryView(); else updateDateContext();
         }
 
-        // [이력 데이터 처리]
         function processHistoryPaste() {
             const raw = document.getElementById('historyPasteInput').value;
             const lines = raw.split('\n');
             historyData = [];
             const year = parseInt(document.getElementById('targetYear').value);
-
             lines.forEach(line => {
                 const cols = line.split('\t');
                 if (cols.length < 3) return; 
-                
-                const dateStr = cols[1]; 
-                const subjRaw = cols[2]; 
-                const duration = cols[8]; 
-
-                const dateMatch = dateStr.match(/(\d+)\/(\d+)/);
+                const dateMatch = cols[1].match(/(\d+)\/(\d+)/);
                 if (!dateMatch) return;
-                
-                const month = parseInt(dateMatch[1]);
-                const day = parseInt(dateMatch[2]);
-
-                historyData.push({ year, month, day, subject: subjRaw, duration });
+                historyData.push({ year, month: parseInt(dateMatch[1]), day: parseInt(dateMatch[2]), subject: cols[2], duration: cols[8] });
             });
-
             if (historyData.length > 0) {
                 document.getElementById('targetMonth').value = historyData[0].month;
                 alert(`${historyData.length}건의 이력이 확인되었습니다.`);
@@ -368,30 +237,20 @@
 
         function updateHistoryView() {
             if (currentTab !== 'history') return;
-            
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
+            document.getElementById('calTitle').innerText = `${month}월 이력`;
+            document.getElementById('calBadge').innerText = "이력 표시";
+            
             const calDiv = document.getElementById('calendarGrid');
-            const calTitle = document.getElementById('calTitle');
-            const calBadge = document.getElementById('calBadge');
-            
-            calTitle.innerText = `${month}월 이력`;
-            calBadge.innerText = "이력 표시";
-            calBadge.className = "text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded font-bold";
-            document.getElementById('historyGuide').classList.remove('hidden');
-            
-            calDiv.innerHTML = '';
-            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400 mode-history";
-
+            calDiv.innerHTML = ''; calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400 mode-history";
             const firstDay = new Date(year, month - 1, 1).getDay();
             const lastDate = new Date(year, month, 0).getDate();
             const dayCounts = {};
             historyData.forEach(d => { if(d.month === month) dayCounts[d.day] = true; });
-
             for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
             for(let i=1; i<=lastDate; i++) {
-                let div = document.createElement('div');
-                div.innerText = i;
+                let div = document.createElement('div'); div.innerText = i;
                 if(dayCounts[i]) div.className = "history-day";
                 calDiv.appendChild(div);
             }
@@ -403,92 +262,33 @@
             const month = parseInt(document.getElementById('targetMonth').value);
             document.getElementById('dispName').innerText = document.getElementById('studentName').value || '학생명';
             document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
-            
-            const tbody = document.getElementById('receiptBody');
-            tbody.innerHTML = '';
-            
+            const tbody = document.getElementById('receiptBody'); tbody.innerHTML = '';
             const subjectMap = {}; 
             historyData.forEach(d => {
                 if(d.month !== month) return;
-                const key = d.subject; 
-                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0 };
-                subjectMap[key].count++;
-                subjectMap[key].totalTime += parseFloat(d.duration || 0);
+                if(!subjectMap[d.subject]) subjectMap[d.subject] = { count: 0, totalTime: 0 };
+                subjectMap[d.subject].count++;
+                subjectMap[d.subject].totalTime += parseFloat(d.duration || 0);
             });
-
             for (const [subjName, data] of Object.entries(subjectMap)) {
                 const parts = subjName.split('-');
-                const mainName = parts[0];
-                let badges = '';
-                if(parts.length > 1) badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`;
-
-                tbody.innerHTML += `
-                    <tr class="border-b border-dashed border-gray-200">
-                        <td class="py-3 pl-1 pr-2 align-top">
-                            <div class="flex items-center flex-wrap gap-y-1">
-                                <span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>
-                                ${badges}
-                            </div>
-                            <div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 출석</div>
-                        </td>
-                        <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
-                            ${data.totalTime}시간
-                        </td>
-                    </tr>`;
+                let badges = parts.length > 1 ? `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>` : '';
+                tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 출석</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.totalTime}시간</td></tr>`;
             }
-
-            const calDiv = document.getElementById('receiptMiniCalGrid');
-            calDiv.innerHTML = '';
-            document.getElementById('calTitleReceipt').innerText = `${month}월 출석 현황`;
-
-            const firstDay = new Date(year, month - 1, 1).getDay(); 
-            const lastDate = new Date(year, month, 0).getDate();
-
-            for(let i=0; i<firstDay; i++) {
-                let div = document.createElement('div');
-                div.className = "receipt-cal-cell bg-gray-50/50";
-                calDiv.appendChild(div);
-            }
-
-            for(let i=1; i<=lastDate; i++) {
-                let div = document.createElement('div');
-                div.className = "receipt-cal-cell";
-                const events = historyData.filter(d => d.month === month && d.day === i);
-                const isActive = events.length > 0;
-
-                let dateSpan = document.createElement('div');
-                dateSpan.innerText = i;
-                dateSpan.className = "rc-date " + (isActive ? "rc-active-date" : "");
-                div.appendChild(dateSpan);
-
-                events.forEach(e => {
-                    let subjSpan = document.createElement('div');
-                    const shortName = e.subject.split('-')[0];
-                    subjSpan.innerText = `${shortName}(${e.duration}h)`;
-                    subjSpan.className = "rc-subject rc-subject-history shadow-sm text-optical-center"; 
-                    div.appendChild(subjSpan);
-                });
-                calDiv.appendChild(div);
-            }
+            renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({day: d.day, name: d.subject.split('-')[0] + `(${d.duration}h)`, type: 'history'})));
         }
 
-        // [일반 기능]
-        function togglePasteArea() {
-            document.getElementById('pasteAreaContainer').classList.toggle('hidden');
-        }
+        function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
         
         function processSmartPaste() {
             const rawText = document.getElementById('smartPasteInput').value;
             if (!rawText.trim()) return;
             const lines = rawText.split('\n');
             lines.forEach(line => {
-                line = line.trim();
-                if (!line) return;
-                let detectedTime = 0;
-                let cleanName = line;
+                line = line.trim(); if (!line) return;
+                let detectedTime = 0; let cleanName = line;
                 const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i);
                 if (timeMatch) detectedTime = parseFloat(timeMatch[1]);
-                
                 if (currentTab === 'manual') addManualRow(cleanName, detectedTime);
                 else if (currentTab === 'select') addSelectRow(cleanName);
                 else addAutoRow(cleanName); 
@@ -499,17 +299,13 @@
         }
 
         function resetAndUpdate() {
-            excludedDates.clear(); 
-            for (const key in selectRowDates) { selectRowDates[key].clear(); }
-            if(currentTab === 'history') updateHistoryView();
-            else updateDateContext();
+            excludedDates.clear(); for (const key in selectRowDates) { selectRowDates[key].clear(); }
+            if(currentTab === 'history') updateHistoryView(); else updateDateContext();
         }
 
         function updateDateContext() {
             if(currentTab === 'history') return;
-            renderCalendar();      
-            recalcAllAutoCounts(); // 여기서 횟수 재계산
-            updateAll();           // 여기서 영수증 표시
+            renderCalendar(); recalcAllAutoCounts(); updateAll();           
         }
 
         function toggleDateExclusion(day) {
@@ -519,10 +315,7 @@
                 if (activeSelectRowId && selectRowDates[activeSelectRowId]) {
                     const rowDates = selectRowDates[activeSelectRowId];
                     if(rowDates.has(day)) rowDates.delete(day); else rowDates.add(day);
-                } else {
-                    alert("먼저 과목을 클릭해서 선택하세요!");
-                    return;
-                }
+                } else { alert("먼저 과목을 클릭해서 선택하세요!"); return; }
             }
             updateDateContext(); 
         }
@@ -532,38 +325,17 @@
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
             const calDiv = document.getElementById('calendarGrid');
-            const calTitle = document.getElementById('calTitle');
-            const calBadge = document.getElementById('calBadge');
-            
-            calTitle.innerText = `${month}월 설정`;
+            document.getElementById('calTitle').innerText = `${month}월 설정`;
             calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; 
-            document.getElementById('historyGuide').classList.add('hidden');
-
-            if(currentTab === 'auto') {
-                calBadge.innerText = "휴강 제외"; calBadge.className = "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold";
-                calDiv.classList.add('mode-auto');
-            } else if(currentTab === 'select') {
-                calBadge.innerText = activeSelectRowId ? "날짜 선택" : "과목 선택";
-                calBadge.className = "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold";
-                calDiv.classList.add('mode-select');
-            } else {
-                calBadge.innerText = "미사용"; calBadge.className = "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded";
-                calDiv.classList.remove('mode-auto', 'mode-select');
-            }
+            document.getElementById('calBadge').innerText = currentTab === 'auto' ? "휴강 제외" : (currentTab === 'select' ? "날짜 선택" : "미사용");
+            document.getElementById('calBadge').className = currentTab === 'auto' ? "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold" : (currentTab === 'select' ? "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold" : "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded");
+            if(currentTab === 'auto') calDiv.classList.add('mode-auto');
+            if(currentTab === 'select') calDiv.classList.add('mode-select');
 
             calDiv.innerHTML = ''; 
-            const firstDay = new Date(year, month - 1, 1).getDay(); 
-            const lastDate = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate();
             const activeWeekdays = new Set();
-            
-            if (currentTab === 'auto') {
-                // 안전한 ID 셀렉터 사용
-                const rows = document.querySelectorAll('#autoList .auto-row');
-                rows.forEach(row => {
-                    const checkboxes = row.querySelectorAll('.day-chk:checked');
-                    checkboxes.forEach(box => activeWeekdays.add(parseInt(box.value)));
-                });
-            }
+            if (currentTab === 'auto') document.querySelectorAll('#autoList .auto-row').forEach(row => row.querySelectorAll('.day-chk:checked').forEach(c => activeWeekdays.add(parseInt(c.value))));
 
             for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
             for(let i=1; i<=lastDate; i++) {
@@ -574,37 +346,52 @@
                 } else if (currentTab === 'select' && activeSelectRowId && selectRowDates[activeSelectRowId]) {
                     if (selectRowDates[activeSelectRowId].has(i)) div.className = "selected-day";
                 }
-                div.onclick = () => toggleDateExclusion(i);
-                calDiv.appendChild(div);
+                div.onclick = () => toggleDateExclusion(i); calDiv.appendChild(div);
             }
         }
 
         function recalcRow(rowIdSuffix, type) {
-            const year = parseInt(document.getElementById('targetYear').value);
-            const month = parseInt(document.getElementById('targetMonth').value);
-            
+            const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value);
+            const row = document.getElementById(type === 'auto' ? `arow-${rowIdSuffix}` : `srow-${rowIdSuffix}`);
+            if (!row) return; 
+            let count = 0;
             if (type === 'auto') {
-                const row = document.getElementById(`arow-${rowIdSuffix}`);
-                if (!row) return; 
-
                 const selectedDays = [];
                 row.querySelectorAll('.day-chk:checked').forEach(c => selectedDays.push(parseInt(c.value)));
-                
-                let count = 0;
                 const date = new Date(year, month - 1, 1);
                 while (date.getMonth() === month - 1) {
                     if (selectedDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) count++;
                     date.setDate(date.getDate() + 1);
                 }
-                document.getElementById(`cnt-${rowIdSuffix}`).value = count;
             } else {
-                document.getElementById(`cnt-${rowIdSuffix}`).value = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0;
+                count = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0;
             }
+            const cntInput = row.querySelector('.sub-count');
+            if(cntInput) cntInput.value = count;
         }
 
         function recalcAllAutoCounts() {
             document.querySelectorAll('.auto-row').forEach(row => recalcRow(row.id.replace('arow-', ''), 'auto'));
             document.querySelectorAll('.select-row').forEach(row => recalcRow(row.id.replace('srow-', ''), 'select'));
+        }
+
+        function renderCommonReceiptCalendar(events) {
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            document.getElementById('calTitleReceipt').innerText = `${month}월 수업 일정 상세`;
+            const calDiv = document.getElementById('receiptMiniCalGrid'); calDiv.innerHTML = '';
+            const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate();
+            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div class="receipt-cal-cell bg-gray-50/50"></div>`;
+            for(let i=1; i<=lastDate; i++) {
+                const dayEvents = events.filter(e => e.day === i);
+                let html = `<div class="receipt-cal-cell"><div class="rc-date ${dayEvents.length > 0 ? 'rc-active-date' : ''}">${i}</div>`;
+                dayEvents.forEach(e => {
+                    const styleClass = e.type === 'history' ? 'rc-subject-history' : '';
+                    html += `<span class="rc-subject shadow-sm text-optical-center ${styleClass}">${e.name}</span>`;
+                });
+                html += `</div>`;
+                calDiv.innerHTML += html;
+            }
         }
 
         function updateAll() {
@@ -614,97 +401,96 @@
             const month = document.getElementById('targetMonth').value;
             document.getElementById('dispName').innerText = name;
             document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
-            renderReceiptCalendar(); 
 
-            const tbody = document.getElementById('receiptBody');
-            tbody.innerHTML = '';
-            let subtotal = 0;
-            const formatDetails = (text) => text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
-            
-            const createSubjectHTML = (rawSubject) => {
-                const parts = rawSubject.split('-');
-                let badgesHTML = ''; let detailsText = '';
-                for(let i=1; i<parts.length; i++) {
-                    const part = parts[i].trim();
-                    if(part.toUpperCase().endsWith('T')) badgesHTML += `<span class="badge-base teacher-badge text-optical-center">${part}</span>`;
-                    else if(part.toLowerCase().endsWith('h')) detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
-                    else badgesHTML += `<span class="badge-base type-badge text-optical-center">${part}</span>`;
-                }
-                return { display: `<div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badgesHTML}${detailsText ? `<span class="text-base text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}</div>` };
-            };
-
-            let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
-            document.querySelectorAll(selector).forEach(row => {
-                const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
-                let count = parseFloat(row.querySelector('.sub-count').value) || 0;
-                let rowTotal = count * rate;
-                let detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
-                
-                if(currentTab === 'manual') {
-                    const time = parseFloat(row.querySelector('.sub-time').value) || 0;
-                    rowTotal = time * count * rate;
-                    detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
-                }
-                
-                if (rowTotal > 0 || count > 0) {
-                    subtotal += rowTotal;
-                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell">${createSubjectHTML(row.querySelector('.sub-name').value).display}<div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
-                }
-            });
-
-            const adj = parseFloat(document.getElementById('adjustment').value) || 0;
-            const total = subtotal + adj;
-            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
+            // 이월금 우선 업데이트
+            const adjInput = document.getElementById('adjustment');
+            const adj = adjInput ? (parseFloat(adjInput.value) || 0) : 0;
             const adjEl = document.getElementById('dispAdj');
-            adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
-            adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
-            document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';
+            if(adjEl) {
+                adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
+                adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
+            }
+
+            const tbody = document.getElementById('receiptBody'); tbody.innerHTML = '';
+            let subtotal = 0;
+            const allEvents = [];
+
+            try {
+                let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
+                document.querySelectorAll(selector).forEach(row => {
+                    const rawName = row.querySelector('.sub-name').value;
+                    const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
+                    let count = parseFloat(row.querySelector('.sub-count').value) || 0;
+                    let rowTotal = 0; let detailStr = '';
+
+                    if(currentTab === 'manual') {
+                        const time = parseFloat(row.querySelector('.sub-time').value) || 0;
+                        rowTotal = time * count * rate;
+                        detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
+                    } else {
+                        rowTotal = count * rate;
+                        detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
+                    }
+
+                    if (rowTotal > 0 || count > 0) {
+                        subtotal += rowTotal;
+                        const parts = rawName.split('-');
+                        let badges = '';
+                        for(let i=1; i<parts.length; i++) {
+                            const p = parts[i].trim();
+                            if(p.toUpperCase().endsWith('T')) badges += `<span class="badge-base teacher-badge text-optical-center">${p}</span>`;
+                            else if(!p.toLowerCase().endsWith('h')) badges += `<span class="badge-base type-badge text-optical-center">${p}</span>`;
+                        }
+                        tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
+                    }
+                    
+                    // 달력 데이터 수집
+                    if(currentTab === 'auto') {
+                        const rowId = row.id.replace('arow-', '');
+                        const checkedBoxes = row.querySelectorAll('.day-chk:checked');
+                        const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+                        const date = new Date(year, month - 1, 1);
+                        while (date.getMonth() === month - 1) {
+                            if (activeDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) {
+                                allEvents.push({day: date.getDate(), name: rawName.split('-')[0]});
+                            }
+                            date.setDate(date.getDate() + 1);
+                        }
+                    } else if(currentTab === 'select') {
+                        const rowId = row.id.replace('srow-', '');
+                        if(selectRowDates[rowId]) {
+                            selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0]}));
+                        }
+                    }
+                });
+            } catch (e) { console.error("Row Calc Error", e); }
+
+            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
+            document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원';
+            renderCommonReceiptCalendar(allEvents);
         }
 
         function addManualRow(nameVal = '', timeVal = '') {
             const id = generateSafeId(); 
-            const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}">
-                <button onclick="removeEl('mrow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                <div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="과목명" value="${nameVal}" oninput="updateAll()"></div>
-                <div class="flex items-center gap-2 text-xs">
-                    <div class="flex-1"><label class="block text-gray-400 mb-0.5">시간</label><input type="number" class="sub-time w-full p-2 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()"></div>
-                    <span class="pt-4 text-gray-300">×</span>
-                    <div class="flex-1"><label class="block text-gray-400 mb-0.5">횟수</label><input type="number" class="sub-count w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()"></div>
-                    <span class="pt-4 text-gray-300">×</span>
-                    <div class="flex-[1.5]"><label class="block text-gray-400 mb-0.5">금액</label><input type="number" class="sub-rate w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()"></div>
-                </div></div>`;
-            document.getElementById('manualList').insertAdjacentHTML('beforeend', html);
-            updateAll();
+            const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}"><button onclick="removeEl('mrow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button><div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="과목명" value="${escapeHtml(nameVal)}" oninput="updateAll()"></div><div class="flex items-center gap-2 text-xs"><div class="flex-1"><label class="block text-gray-400 mb-0.5">시간</label><input type="number" class="sub-time w-full p-2 border rounded text-right" placeholder="0" value="${timeVal}" oninput="updateAll()"></div><span class="pt-4 text-gray-300">×</span><div class="flex-1"><label class="block text-gray-400 mb-0.5">횟수</label><input type="number" class="sub-count w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()"></div><span class="pt-4 text-gray-300">×</span><div class="flex-[1.5]"><label class="block text-gray-400 mb-0.5">금액</label><input type="number" class="sub-rate w-full p-2 border rounded text-right" placeholder="0" oninput="updateAll()"></div></div></div>`;
+            document.getElementById('manualList').insertAdjacentHTML('beforeend', html); updateAll();
         }
 
         function addAutoRow(nameVal = '') {
             const id = generateSafeId();
-            const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group auto-row" id="arow-${id}">
-                <button onclick="removeEl('arow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                <div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${nameVal}" oninput="updateAll()"></div>
-                <div class="flex justify-between mb-3 px-1">${['일','월','화','수','목','금','토'].map((d, i) => `<div><input type="checkbox" id="d-${id}-${i}" value="${i}" class="day-chk hidden" onchange="updateDateContext()"><label for="d-${id}-${i}" class="block w-8 h-8 rounded-full border border-gray-300 text-center leading-7 text-xs cursor-pointer select-none text-gray-400 hover:bg-white hover:border-[#004094] font-bold">${d}</label></div>`).join('')}</div>
-                <div class="flex gap-2 bg-gray-50 p-2 rounded items-center"><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div></div>`;
-            document.getElementById('autoList').insertAdjacentHTML('beforeend', html);
-            updateAll();
+            const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group auto-row" id="arow-${id}"><button onclick="removeEl('arow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button><div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 국어-개별정규-남종언T-3h" value="${escapeHtml(nameVal)}" oninput="updateAll()"></div><div class="flex justify-between mb-3 px-1">${['일','월','화','수','목','금','토'].map((d, i) => `<div><input type="checkbox" id="d-${id}-${i}" value="${i}" class="day-chk hidden" onchange="updateDateContext()"><label for="d-${id}-${i}" class="block w-8 h-8 rounded-full border border-gray-300 text-center leading-7 text-xs cursor-pointer select-none text-gray-400 hover:bg-white hover:border-[#004094] font-bold">${d}</label></div>`).join('')}</div><div class="flex gap-2 bg-gray-50 p-2 rounded items-center"><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div></div>`;
+            document.getElementById('autoList').insertAdjacentHTML('beforeend', html); updateAll();
         }
 
         function addSelectRow(nameVal = '') {
-            const id = generateSafeId();
-            selectRowDates[id] = new Set(); 
-            const html = `<div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row cursor-pointer transition hover:border-blue-400" id="srow-${id}" onclick="setActiveSelectRow('${id}')">
-                <button onclick="event.stopPropagation(); removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
-                <div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-보충" value="${nameVal}" oninput="updateAll()"></div>
-                <div class="flex gap-2 bg-blue-50 p-2 rounded items-center"><span class="text-xs font-bold text-[#004094]">선택:</span><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div>
-                <div class="mt-1 text-[10px] text-blue-400 text-right">* 이 박스를 클릭하고 달력을 찍으세요</div></div>`;
-            document.getElementById('selectList').insertAdjacentHTML('beforeend', html);
-            setActiveSelectRow(id);
+            const id = generateSafeId(); selectRowDates[id] = new Set(); 
+            const html = `<div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row cursor-pointer transition hover:border-blue-400" id="srow-${id}" onclick="setActiveSelectRow('${id}')"><button onclick="event.stopPropagation(); removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button><div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-보충" value="${escapeHtml(nameVal)}" oninput="updateAll()"></div><div class="flex gap-2 bg-blue-50 p-2 rounded items-center"><span class="text-xs font-bold text-[#004094]">선택:</span><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div><div class="mt-1 text-[10px] text-blue-400 text-right">* 이 박스를 클릭하고 달력을 찍으세요</div></div>`;
+            document.getElementById('selectList').insertAdjacentHTML('beforeend', html); setActiveSelectRow(id);
         }
 
         function setActiveSelectRow(id) {
-            activeSelectRowId = id;
-            document.querySelectorAll('.select-row').forEach(r => r.classList.remove('active-row'));
-            const row = document.getElementById(`srow-${id}`);
-            if(row) row.classList.add('active-row');
+            activeSelectRowId = id; document.querySelectorAll('.select-row').forEach(r => r.classList.remove('active-row'));
+            const row = document.getElementById(`srow-${id}`); if(row) row.classList.add('active-row');
             updateDateContext();
         }
 
