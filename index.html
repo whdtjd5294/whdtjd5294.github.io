@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V25</title>
+    <title>에스에듀 반포관 수강료 계산기 V26</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -24,11 +24,30 @@
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
 
+        /* [영수증 달력] */
         .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
         .receipt-cal-cell { background-color: white; min-height: 70px; padding: 4px 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         .rc-date { font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; }
-        .rc-subject { font-size: 0.8rem; background-color: #eff6ff; color: #004094; width: 92%; text-align: center; padding: 4px 0; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; line-height: 1.2; display: block; }
-        .rc-subject-history { background-color: #ecfdf5; color: #065f46; }
+        
+        /* [과목별 색상 스타일] */
+        .rc-subject { 
+            font-size: 0.8rem; width: 92%; text-align: center; padding: 4px 0; border-radius: 4px; 
+            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            font-weight: 800; line-height: 1.2; display: block; 
+        }
+        /* 기본(기타) - 남색 */
+        .subj-default { background-color: #eff6ff; color: #004094; }
+        /* 수학 - 파랑 */
+        .subj-math { background-color: #dbeafe; color: #1e40af; }
+        /* 국어 - 초록 */
+        .subj-kor { background-color: #dcfce7; color: #166534; }
+        /* 영어 - 빨강 */
+        .subj-eng { background-color: #fee2e2; color: #991b1b; }
+        /* 과학 - 보라 */
+        .subj-sci { background-color: #f3e8ff; color: #6b21a8; }
+        /* 사회 - 갈색/노랑 */
+        .subj-soc { background-color: #fef3c7; color: #92400e; }
+
         .rc-active-date { color: #1f2937; }
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
 
@@ -189,6 +208,24 @@
         function generateSafeId() { return 'item_' + (++rowCounter); }
         function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
 
+        // [New] 과목명에 따른 색상 클래스 반환 함수
+        function getSubjectColorClass(name) {
+            if (!name) return 'subj-default';
+            const n = name.trim();
+            
+            if (n.includes('수학')) return 'subj-math';
+            if (n.includes('국어')) return 'subj-kor';
+            if (n.includes('영어')) return 'subj-eng';
+            
+            const sciKeys = ['과학', '화학', '생명', '물리', '지학', '물지'];
+            if (sciKeys.some(k => n.includes(k))) return 'subj-sci';
+            
+            const socKeys = ['사회', '사탐', '사문', '한국사', '세계사', '지리', '한지', '세지', '윤리', '윤사', '역사'];
+            if (socKeys.some(k => n.includes(k))) return 'subj-soc';
+            
+            return 'subj-default';
+        }
+
         function switchTab(tab) {
             currentTab = tab;
             ['auto', 'select', 'manual', 'history'].forEach(t => {
@@ -275,7 +312,7 @@
                 let badges = parts.length > 1 ? `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>` : '';
                 tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 출석</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.totalTime}시간</td></tr>`;
             }
-            renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({day: d.day, name: d.subject.split('-')[0] + `(${d.duration}h)`, type: 'history'})));
+            renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({day: d.day, name: d.subject.split('-')[0] + `(${d.duration}h)`, type: 'history', rawName: d.subject})));
         }
 
         function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
@@ -386,8 +423,8 @@
                 const dayEvents = events.filter(e => e.day === i);
                 let html = `<div class="receipt-cal-cell"><div class="rc-date ${dayEvents.length > 0 ? 'rc-active-date' : ''}">${i}</div>`;
                 dayEvents.forEach(e => {
-                    const styleClass = e.type === 'history' ? 'rc-subject-history' : '';
-                    html += `<span class="rc-subject shadow-sm text-optical-center ${styleClass}">${e.name}</span>`;
+                    const colorClass = getSubjectColorClass(e.rawName || e.name); // 색상 결정
+                    html += `<span class="rc-subject shadow-sm text-optical-center ${colorClass}">${e.name}</span>`;
                 });
                 html += `</div>`;
                 calDiv.innerHTML += html;
@@ -402,7 +439,6 @@
             document.getElementById('dispName').innerText = name;
             document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
 
-            // 이월금 우선 업데이트
             const adjInput = document.getElementById('adjustment');
             const adj = adjInput ? (parseFloat(adjInput.value) || 0) : 0;
             const adjEl = document.getElementById('dispAdj');
@@ -444,7 +480,6 @@
                         tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
                     }
                     
-                    // 달력 데이터 수집
                     if(currentTab === 'auto') {
                         const rowId = row.id.replace('arow-', '');
                         const checkedBoxes = row.querySelectorAll('.day-chk:checked');
@@ -452,14 +487,14 @@
                         const date = new Date(year, month - 1, 1);
                         while (date.getMonth() === month - 1) {
                             if (activeDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) {
-                                allEvents.push({day: date.getDate(), name: rawName.split('-')[0]});
+                                allEvents.push({day: date.getDate(), name: rawName.split('-')[0], rawName: rawName});
                             }
                             date.setDate(date.getDate() + 1);
                         }
                     } else if(currentTab === 'select') {
                         const rowId = row.id.replace('srow-', '');
                         if(selectRowDates[rowId]) {
-                            selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0]}));
+                            selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0], rawName: rawName}));
                         }
                     }
                 });
