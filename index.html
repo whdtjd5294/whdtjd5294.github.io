@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V21</title>
+    <title>에스에듀 반포관 수강료 계산기 V22</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; }
         
-        /* 쉐도우 */
         .receipt-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .day-chk:checked + label { background-color: #004094; color: white; border-color: #004094; }
         
-        /* 리스트 스타일 */
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
@@ -29,7 +27,6 @@
         .sun { color: #ef4444; }
         .sat { color: #3b82f6; }
         
-        /* 모드별 달력 스타일 */
         .mode-auto .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .mode-auto .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
@@ -53,16 +50,11 @@
             margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
             font-weight: 800; line-height: 1.2; display: block; 
         }
-        /* 이력 확인용 과목 스타일 (색상 구분) */
-        .rc-subject-history {
-            background-color: #ecfdf5; color: #065f46;
-        }
+        .rc-subject-history { background-color: #ecfdf5; color: #065f46; } /* 이력용 초록색 */
         .rc-active-date { color: #1f2937; }
 
-        /* 텍스트 정렬 보정 */
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
 
-        /* 배지 스타일 */
         .badge-base {
             display: inline-flex; align-items: center; justify-content: center;
             height: 26px; padding: 0 10px; font-size: 0.8rem; 
@@ -71,7 +63,6 @@
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
-        /* 영수증 전체 컨테이너 */
         #captureArea { 
             position: relative; overflow: hidden; background-color: white;
             max-width: 1100px; width: 1100px;
@@ -84,7 +75,6 @@
         .receipt-left { flex: 1.3; }
         .receipt-right { flex: 1; display: flex; flex-direction: column; }
 
-        /* 스크롤바 */
         .custom-scroll::-webkit-scrollbar { width: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -127,6 +117,9 @@
                     <div id="historyGuide" class="hidden text-[10px] text-green-600 bg-green-50 p-2 rounded mb-2 border border-green-100 text-center">
                         ✅ Access 데이터 기반 <b>수강 이력</b> 표시 중
                     </div>
+                    <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">
+                        👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.
+                    </div>
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
                     </div>
@@ -136,7 +129,7 @@
 
             <div id="smartPasteSection" class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-inner">
                 <div class="flex justify-between items-center cursor-pointer" onclick="togglePasteArea()">
-                    <h3 class="text-sm font-bold text-[#004094]">📋 [계산기용] 반명 붙여넣기</h3>
+                    <h3 class="text-sm font-bold text-[#004094]">📋 [계산기] 반명 붙여넣기</h3>
                     <span id="pasteIcon" class="text-[#004094] text-xs">▼</span>
                 </div>
                 <div id="pasteAreaContainer" class="hidden mt-3">
@@ -172,8 +165,6 @@
                             <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 여기에 붙여넣으세요.&#13;&#10;(연결/일자/반명/관/출결/TR...)"></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
-                        <div id="historyList" class="space-y-2">
-                            </div>
                     </div>
                 </div>
 
@@ -185,7 +176,7 @@
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
-            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-8 bg-white transition-colors duration-300">
+            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-8 bg-white">
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" class="watermark-img" crossorigin="anonymous">
                 <div class="receipt-content">
                     <div class="text-center mb-10 relative z-20">
@@ -272,25 +263,30 @@
     </div>
 
     <script>
+        // 전역 변수
         let currentTab = 'auto'; 
         let excludedDates = new Set(); 
         let activeSelectRowId = null;  
         const selectRowDates = {};     
-        let historyData = []; // 이력 데이터 저장소
+        let historyData = [];
 
-        // --- 초기화 ---
+        // --- 초기화 (순서 중요) ---
         window.onload = function() {
-            // [NEW] 현재 날짜로 초기화
+            // 1. 날짜 설정
             const now = new Date();
             document.getElementById('targetYear').value = now.getFullYear();
             document.getElementById('targetMonth').value = now.getMonth() + 1;
             
+            // 2. 기본 행 추가
             addAutoRow();
-            switchTab('auto'); // 초기 탭 설정
+            
+            // 3. 탭 초기화 및 렌더링
+            switchTab('auto'); 
         };
 
         function switchTab(tab) {
             currentTab = tab;
+            // 탭 컨텐츠 토글
             ['auto', 'select', 'manual', 'history'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 
@@ -303,25 +299,36 @@
                 }
             });
 
-            // UI 모드 전환 (이력확인 vs 계산기)
-            const isHistory = tab === 'history';
+            // 모드별 UI 토글
+            const isHistory = (tab === 'history');
             document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
-            
-            // 영수증 UI 변경
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             document.getElementById('infoBox').classList.toggle('hidden', isHistory);
+            
+            // 영수증 텍스트 변경
             document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
-            document.getElementById('dateBadge').className = isHistory ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
-            document.getElementById('captureArea').classList.toggle('border-[#004094]', !isHistory);
-            document.getElementById('captureArea').classList.toggle('border-green-600', isHistory);
-
-            if (tab === 'history') {
-                updateHistoryView();
+            document.getElementById('dateBadge').className = isHistory 
+                ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' 
+                : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
+            
+            // 테두리 색상 변경
+            const capArea = document.getElementById('captureArea');
+            if(isHistory) {
+                capArea.classList.remove('border-[#004094]');
+                capArea.classList.add('border-green-600');
             } else {
-                updateDateContext();
+                capArea.classList.remove('border-green-600');
+                capArea.classList.add('border-[#004094]');
             }
+
+            // 선택형 가이드 표시 여부
+            document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
+
+            // 화면 갱신
+            if (isHistory) updateHistoryView();
+            else updateDateContext();
         }
 
         // --- 이력 확인 (History) 로직 ---
@@ -329,18 +336,16 @@
             const raw = document.getElementById('historyPasteInput').value;
             const lines = raw.split('\n');
             historyData = [];
-            const year = parseInt(document.getElementById('targetYear').value); // 현재 설정된 연도 기준
+            const year = parseInt(document.getElementById('targetYear').value);
 
             lines.forEach(line => {
                 const cols = line.split('\t');
-                // Access 순서: 연결(0), 일자(1), 반명(2), 관(3), 출결(4), TR(5), 시작(6), 종료(7), 시간(8)
                 if (cols.length < 3) return; 
                 
-                const dateStr = cols[1]; // 예: 12/2(화)
-                const subjRaw = cols[2]; // 예: 수학-개별(안준성)-1h
-                const duration = cols[8]; // 예: 2.0
+                const dateStr = cols[1]; // 12/2(화)
+                const subjRaw = cols[2]; 
+                const duration = cols[8]; 
 
-                // 날짜 파싱 (12/2 -> 월, 일)
                 const dateMatch = dateStr.match(/(\d+)\/(\d+)/);
                 if (!dateMatch) return;
                 
@@ -348,16 +353,14 @@
                 const day = parseInt(dateMatch[2]);
 
                 historyData.push({
-                    year: year, // 일단 현재 설정 연도 따라감
+                    year: year,
                     month: month,
                     day: day,
                     subject: subjRaw,
-                    duration: duration,
-                    original: line
+                    duration: duration
                 });
             });
 
-            // 데이터가 있으면 해당 월로 이동 (첫번째 데이터 기준)
             if (historyData.length > 0) {
                 document.getElementById('targetMonth').value = historyData[0].month;
                 alert(`${historyData.length}건의 이력이 확인되었습니다.`);
@@ -368,34 +371,39 @@
         function updateHistoryView() {
             if (currentTab !== 'history') return;
             
-            // 1. 좌측 달력 표시 (History Mode)
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
+            
+            // 1. 좌측 달력 (History Mode)
             const calDiv = document.getElementById('calendarGrid');
-            document.getElementById('calTitle').innerText = `${month}월 이력`;
+            const calTitle = document.getElementById('calTitle');
+            const calBadge = document.getElementById('calBadge');
+            
+            calTitle.innerText = `${month}월 이력`;
+            calBadge.innerText = "이력 표시";
+            calBadge.className = "text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded font-bold";
             document.getElementById('historyGuide').classList.remove('hidden');
             
             calDiv.innerHTML = '';
+            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400 mode-history";
+
             const firstDay = new Date(year, month - 1, 1).getDay();
             const lastDate = new Date(year, month, 0).getDate();
             
-            // 데이터 매핑: { day: count }
             const dayCounts = {};
             historyData.forEach(d => {
-                if(d.month === month) dayCounts[d.day] = (dayCounts[d.day] || 0) + 1;
+                if(d.month === month) dayCounts[d.day] = true;
             });
 
             for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
             for(let i=1; i<=lastDate; i++) {
                 let div = document.createElement('div');
                 div.innerText = i;
-                if(dayCounts[i]) {
-                    div.className = "history-day"; // 이력 있는 날 강조
-                }
+                if(dayCounts[i]) div.className = "history-day";
                 calDiv.appendChild(div);
             }
 
-            // 2. 우측 영수증 업데이트
+            // 2. 우측 영수증 (이력 모드)
             renderHistoryReceipt();
         }
 
@@ -405,27 +413,24 @@
             document.getElementById('dispName').innerText = document.getElementById('studentName').value || '학생명';
             document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
             
-            // 리스트 렌더링
             const tbody = document.getElementById('receiptBody');
             tbody.innerHTML = '';
             
-            // 과목별로 그룹화
+            // 과목별 그룹화
             const subjectMap = {}; 
             historyData.forEach(d => {
                 if(d.month !== month) return;
-                const key = d.subject; // 전체 이름 기준 그룹화
-                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, dates: [] };
+                const key = d.subject; 
+                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0 };
                 subjectMap[key].count++;
                 subjectMap[key].totalTime += parseFloat(d.duration || 0);
-                subjectMap[key].dates.push(d.day);
             });
 
             for (const [subjName, data] of Object.entries(subjectMap)) {
-                // 이름 파싱
                 const parts = subjName.split('-');
                 const mainName = parts[0];
                 let badges = '';
-                if(parts.length > 1) badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`; // 대충 처리
+                if(parts.length > 1) badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b border-dashed border-gray-200">
@@ -442,9 +447,11 @@
                     </tr>`;
             }
 
-            // 달력 렌더링
+            // 우측 달력 (이력 상세)
             const calDiv = document.getElementById('receiptMiniCalGrid');
             calDiv.innerHTML = '';
+            document.getElementById('calTitleReceipt').innerText = `${month}월 출석 현황`;
+
             const firstDay = new Date(year, month - 1, 1).getDay(); 
             const lastDate = new Date(year, month, 0).getDate();
 
@@ -458,7 +465,6 @@
                 let div = document.createElement('div');
                 div.className = "receipt-cal-cell";
                 
-                // 해당 날짜의 이력 찾기
                 const events = historyData.filter(d => d.month === month && d.day === i);
                 const isActive = events.length > 0;
 
@@ -469,9 +475,8 @@
 
                 events.forEach(e => {
                     let subjSpan = document.createElement('div');
-                    // 짧은 이름 추출 (수학-...)
                     const shortName = e.subject.split('-')[0];
-                    subjSpan.innerText = `${shortName} (${e.duration}h)`;
+                    subjSpan.innerText = `${shortName}(${e.duration}h)`;
                     subjSpan.className = "rc-subject rc-subject-history shadow-sm text-optical-center"; 
                     div.appendChild(subjSpan);
                 });
@@ -479,13 +484,14 @@
             }
         }
 
-        // --- 기존 로직 (생략 없이 포함) ---
+        // --- 공통 및 기존 로직 ---
         function togglePasteArea() {
-            document.getElementById('pasteAreaContainer').classList.toggle('hidden');
+            const area = document.getElementById('pasteAreaContainer');
+            if (area.classList.contains('hidden')) area.classList.remove('hidden');
+            else area.classList.add('hidden');
         }
-        
+
         function processSmartPaste() {
-            // 기존 스마트 붙여넣기 로직
             const rawText = document.getElementById('smartPasteInput').value;
             if (!rawText.trim()) return;
             const lines = rawText.split('\n');
@@ -496,6 +502,7 @@
                 let cleanName = line;
                 const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i);
                 if (timeMatch) detectedTime = parseFloat(timeMatch[1]);
+                
                 if (currentTab === 'manual') addManualRow(cleanName, detectedTime);
                 else if (currentTab === 'select') addSelectRow(cleanName);
                 else addAutoRow(cleanName); 
@@ -503,6 +510,21 @@
             document.getElementById('smartPasteInput').value = ''; 
             alert(`${lines.length}개의 과목이 추가되었습니다.`);
             updateAll();
+        }
+
+        function resetAndUpdate() {
+            excludedDates.clear(); 
+            for (const key in selectRowDates) { selectRowDates[key].clear(); }
+            // 모드에 따라 분기
+            if(currentTab === 'history') updateHistoryView();
+            else updateDateContext();
+        }
+
+        function updateDateContext() {
+            if(currentTab === 'history') return;
+            renderCalendar();      
+            recalcAllAutoCounts(); 
+            updateAll();           
         }
 
         function toggleDateExclusion(day) {
@@ -513,13 +535,139 @@
                     const rowDates = selectRowDates[activeSelectRowId];
                     if(rowDates.has(day)) rowDates.delete(day); else rowDates.add(day);
                 } else {
-                    alert("먼저 과목을 선택하세요!");
+                    alert("먼저 과목을 클릭해서 선택하세요!");
                     return;
                 }
             }
             updateDateContext(); 
         }
 
+        function renderCalendar() {
+            if(currentTab === 'history') return; 
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            const calDiv = document.getElementById('calendarGrid');
+            const calTitle = document.getElementById('calTitle');
+            const calBadge = document.getElementById('calBadge');
+            
+            calTitle.innerText = `${month}월 설정`;
+            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; 
+            document.getElementById('historyGuide').classList.add('hidden');
+
+            if(currentTab === 'auto') {
+                calBadge.innerText = "휴강 제외"; calBadge.className = "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold";
+                calDiv.classList.add('mode-auto');
+                calDiv.classList.remove('mode-select');
+            } else if(currentTab === 'select') {
+                calBadge.innerText = activeSelectRowId ? "날짜 선택" : "과목 선택";
+                calBadge.className = "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold";
+                calDiv.classList.add('mode-select');
+                calDiv.classList.remove('mode-auto');
+            } else {
+                calBadge.innerText = "미사용"; calBadge.className = "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded";
+                calDiv.classList.remove('mode-auto', 'mode-select');
+            }
+
+            calDiv.innerHTML = ''; 
+            const firstDay = new Date(year, month - 1, 1).getDay(); 
+            const lastDate = new Date(year, month, 0).getDate();
+            const activeWeekdays = new Set();
+            if (currentTab === 'auto') document.querySelectorAll('#tab-auto .day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
+
+            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
+            for(let i=1; i<=lastDate; i++) {
+                let div = document.createElement('div'); div.innerText = i;
+                if(currentTab === 'auto') {
+                    if (excludedDates.has(i)) div.className = "excluded-day";
+                    else if (activeWeekdays.has(new Date(year, month-1, i).getDay())) div.className = "highlight-day shadow-sm";
+                } else if (currentTab === 'select' && activeSelectRowId && selectRowDates[activeSelectRowId]) {
+                    if (selectRowDates[activeSelectRowId].has(i)) div.className = "selected-day";
+                }
+                div.onclick = () => toggleDateExclusion(i);
+                calDiv.appendChild(div);
+            }
+        }
+
+        // --- 계산 로직 ---
+        function recalcRow(rowIdSuffix, type) {
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            if (type === 'auto') {
+                const selectedDays = [];
+                document.querySelectorAll(`#arow-${rowIdSuffix} .day-chk:checked`).forEach(c => selectedDays.push(parseInt(c.value)));
+                let count = 0;
+                const date = new Date(year, month - 1, 1);
+                while (date.getMonth() === month - 1) {
+                    if (selectedDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) count++;
+                    date.setDate(date.getDate() + 1);
+                }
+                document.getElementById(`cnt-${rowIdSuffix}`).value = count;
+            } else {
+                document.getElementById(`cnt-${rowIdSuffix}`).value = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0;
+            }
+        }
+
+        function recalcAllAutoCounts() {
+            document.querySelectorAll('.auto-row').forEach(row => recalcRow(row.id.replace('arow-', ''), 'auto'));
+            document.querySelectorAll('.select-row').forEach(row => recalcRow(row.id.replace('srow-', ''), 'select'));
+        }
+
+        function updateAll() {
+            if (currentTab === 'history') return; 
+            
+            const name = document.getElementById('studentName').value || '학생명';
+            const year = document.getElementById('targetYear').value;
+            const month = document.getElementById('targetMonth').value;
+            document.getElementById('dispName').innerText = name;
+            document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
+            renderReceiptCalendar(); 
+
+            const tbody = document.getElementById('receiptBody');
+            tbody.innerHTML = '';
+            let subtotal = 0;
+            const formatDetails = (text) => text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
+            
+            const createSubjectHTML = (rawSubject) => {
+                const parts = rawSubject.split('-');
+                let badgesHTML = ''; let detailsText = '';
+                for(let i=1; i<parts.length; i++) {
+                    const part = parts[i].trim();
+                    if(part.toUpperCase().endsWith('T')) badgesHTML += `<span class="badge-base teacher-badge text-optical-center">${part}</span>`;
+                    else if(part.toLowerCase().endsWith('h')) detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
+                    else badgesHTML += `<span class="badge-base type-badge text-optical-center">${part}</span>`;
+                }
+                return { display: `<div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badgesHTML}${detailsText ? `<span class="text-base text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}</div>` };
+            };
+
+            let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
+            document.querySelectorAll(selector).forEach(row => {
+                const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
+                let count = parseFloat(row.querySelector('.sub-count').value) || 0;
+                let rowTotal = count * rate;
+                let detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
+                
+                if(currentTab === 'manual') {
+                    const time = parseFloat(row.querySelector('.sub-time').value) || 0;
+                    rowTotal = time * count * rate;
+                    detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
+                }
+                
+                if (rowTotal > 0 || count > 0) {
+                    subtotal += rowTotal;
+                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell">${createSubjectHTML(row.querySelector('.sub-name').value).display}<div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
+                }
+            });
+
+            const adj = parseFloat(document.getElementById('adjustment').value) || 0;
+            const total = subtotal + adj;
+            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
+            const adjEl = document.getElementById('dispAdj');
+            adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
+            adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
+            document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';
+        }
+
+        // --- 행 추가 함수들 ---
         function addManualRow(nameVal = '', timeVal = '') {
             const id = Date.now() + Math.random(); 
             const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}">
@@ -553,7 +701,8 @@
             const html = `<div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row cursor-pointer transition hover:border-blue-400" id="srow-${id}" onclick="setActiveSelectRow('${id}')">
                 <button onclick="event.stopPropagation(); removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button>
                 <div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-보충" value="${nameVal}" oninput="updateAll()"></div>
-                <div class="flex gap-2 bg-blue-50 p-2 rounded items-center"><span class="text-xs font-bold text-[#004094]">선택:</span><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div></div>`;
+                <div class="flex gap-2 bg-blue-50 p-2 rounded items-center"><span class="text-xs font-bold text-[#004094]">선택:</span><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div>
+                <div class="mt-1 text-[10px] text-blue-400 text-right">* 이 박스를 클릭하고 달력을 찍으세요</div></div>`;
             document.getElementById('selectList').insertAdjacentHTML('beforeend', html);
             setActiveSelectRow(id);
         }
@@ -572,129 +721,23 @@
             updateAll(); 
         }
 
-        // --- 공통 렌더링 로직 (축약) ---
-        function renderCalendar() {
-            if(currentTab === 'history') return; // History는 별도 렌더링
-            const year = parseInt(document.getElementById('targetYear').value);
-            const month = parseInt(document.getElementById('targetMonth').value);
-            const calDiv = document.getElementById('calendarGrid');
-            const calTitle = document.getElementById('calTitle');
-            const calBadge = document.getElementById('calBadge');
-            
-            calTitle.innerText = `${month}월 설정`;
-            calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; 
-            document.getElementById('historyGuide').classList.add('hidden');
-
-            if(currentTab === 'auto') {
-                calBadge.innerText = "휴강 제외"; calBadge.className = "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold";
-                calDiv.classList.add('mode-auto');
-            } else if(currentTab === 'select') {
-                calBadge.innerText = activeSelectRowId ? "날짜 선택" : "과목 선택";
-                calBadge.className = "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold";
-                calDiv.classList.add('mode-select');
-            } else {
-                calBadge.innerText = "미사용"; calBadge.className = "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded";
-            }
-
-            calDiv.innerHTML = ''; 
-            const firstDay = new Date(year, month - 1, 1).getDay(); 
-            const lastDate = new Date(year, month, 0).getDate();
-            const activeWeekdays = new Set();
-            if (currentTab === 'auto') document.querySelectorAll('#tab-auto .day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
-
-            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
-            for(let i=1; i<=lastDate; i++) {
-                let div = document.createElement('div'); div.innerText = i;
-                if(currentTab === 'auto') {
-                    if (excludedDates.has(i)) div.className = "excluded-day";
-                    else if (activeWeekdays.has(new Date(year, month-1, i).getDay())) div.className = "highlight-day shadow-sm";
-                } else if (currentTab === 'select' && activeSelectRowId && selectRowDates[activeSelectRowId]) {
-                    if (selectRowDates[activeSelectRowId].has(i)) div.className = "selected-day";
-                }
-                div.onclick = () => toggleDateInteraction(i);
-                calDiv.appendChild(div);
-            }
-        }
-
-        function recalcRow(rowIdSuffix, type) {
-            const year = parseInt(document.getElementById('targetYear').value);
-            const month = parseInt(document.getElementById('targetMonth').value);
-            if (type === 'auto') {
-                const selectedDays = [];
-                document.querySelectorAll(`#arow-${rowIdSuffix} .day-chk:checked`).forEach(c => selectedDays.push(parseInt(c.value)));
-                let count = 0;
-                const date = new Date(year, month - 1, 1);
-                while (date.getMonth() === month - 1) {
-                    if (selectedDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) count++;
-                    date.setDate(date.getDate() + 1);
-                }
-                document.getElementById(`cnt-${rowIdSuffix}`).value = count;
-            } else {
-                document.getElementById(`cnt-${rowIdSuffix}`).value = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0;
-            }
-        }
-
-        function recalcAllAutoCounts() {
-            document.querySelectorAll('.auto-row').forEach(row => recalcRow(row.id.replace('arow-', ''), 'auto'));
-            document.querySelectorAll('.select-row').forEach(row => recalcRow(row.id.replace('srow-', ''), 'select'));
-        }
-
-        function updateAll() {
-            if (currentTab === 'history') return; // History는 별도 함수 사용
-            const name = document.getElementById('studentName').value || '학생명';
-            const year = document.getElementById('targetYear').value;
-            const month = document.getElementById('targetMonth').value;
-            document.getElementById('dispName').innerText = name;
-            document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
-            renderReceiptCalendar(); 
-
-            const tbody = document.getElementById('receiptBody');
-            tbody.innerHTML = '';
-            let subtotal = 0;
-            const formatDetails = (text) => text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
-            const createSubjectHTML = (rawSubject) => {
-                const parts = rawSubject.split('-');
-                let badgesHTML = ''; let detailsText = '';
-                for(let i=1; i<parts.length; i++) {
-                    const part = parts[i].trim();
-                    if(part.toUpperCase().endsWith('T')) badgesHTML += `<span class="badge-base teacher-badge text-optical-center">${part}</span>`;
-                    else if(part.toLowerCase().endsWith('h')) detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
-                    else badgesHTML += `<span class="badge-base type-badge text-optical-center">${part}</span>`;
-                }
-                return { display: `<div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badgesHTML}${detailsText ? `<span class="text-base text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}</div>` };
-            };
-
-            let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
-            document.querySelectorAll(selector).forEach(row => {
-                const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
-                let count = parseFloat(row.querySelector('.sub-count').value) || 0;
-                let rowTotal = count * rate;
-                let detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
-                if(currentTab === 'manual') {
-                    const time = parseFloat(row.querySelector('.sub-time').value) || 0;
-                    rowTotal = time * count * rate;
-                    detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
-                }
-                if (rowTotal > 0 || count > 0) {
-                    subtotal += rowTotal;
-                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell">${createSubjectHTML(row.querySelector('.sub-name').value).display}<div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
-                }
-            });
-
-            const adj = parseFloat(document.getElementById('adjustment').value) || 0;
-            const total = subtotal + adj;
-            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
-            const adjEl = document.getElementById('dispAdj');
-            adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
-            adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
-            document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';
-        }
-
         function downloadImage() {
             const captureElement = document.getElementById("captureArea");
-            html2canvas(captureElement, { scale: 3, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: captureElement.scrollWidth, windowHeight: captureElement.scrollHeight, onclone: (clonedDoc) => { clonedDoc.querySelector('.watermark-img').style.opacity = '0.07'; } }).then(canvas => {
+            html2canvas(captureElement, { 
+                scale: 3, 
+                useCORS: true, 
+                backgroundColor: "#ffffff",
+                logging: false,
+                windowWidth: captureElement.scrollWidth,
+                windowHeight: captureElement.scrollHeight,
+                onclone: (clonedDoc) => {
+                    clonedDoc.querySelector('.watermark-img').style.opacity = '0.07';
+                }
+            }).then(canvas => {
                 const link = document.createElement("a");
-                link.download = `수강료_${document.getElementById('studentName').value}_${document.getElementById('targetMonth').value}월_에스에듀.png`;
+                const name = document.getElementById('studentName').value || '학생';
+                const month = document.getElementById('targetMonth').value;
+                link.download = `수강료_${name}_${month}월_에스에듀.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
