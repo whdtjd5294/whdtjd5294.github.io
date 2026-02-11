@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V23 (Final Patch)</title>
+    <title>에스에듀 반포관 수강료 계산기 V24</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -17,6 +17,7 @@
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
+        /* 달력 스타일 */
         .calendar-grid div { 
             width: 32px; height: 32px; 
             display: flex; align-items: center; justify-content: center;
@@ -31,6 +32,7 @@
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
 
+        /* 영수증 달력 */
         .receipt-cal-grid { 
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; 
             background-color: #e5e7eb; border: 1px solid #e5e7eb; 
@@ -118,6 +120,7 @@
                     <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">
                         👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.
                     </div>
+                    
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
                     </div>
@@ -268,12 +271,21 @@
         let historyData = [];
 
         window.onload = function() {
+            // 현재 날짜 설정
             const now = new Date();
             document.getElementById('targetYear').value = now.getFullYear();
             document.getElementById('targetMonth').value = now.getMonth() + 1;
+            
+            // 초기 행 추가
             addAutoRow();
+            // 탭 초기화
             switchTab('auto'); 
         };
+
+        function generateSafeId() {
+            // [중요] 소수점이 없는 안전한 ID 생성
+            return 'id_' + Date.now().toString(36) + '_' + Math.floor(Math.random() * 1000).toString();
+        }
 
         function switchTab(tab) {
             currentTab = tab;
@@ -288,12 +300,14 @@
                 }
             });
 
+            // UI 모드 전환
             const isHistory = (tab === 'history');
             document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
             
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             document.getElementById('infoBox').classList.toggle('hidden', isHistory);
+            
             document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
             document.getElementById('dateBadge').className = isHistory 
@@ -311,6 +325,7 @@
 
             document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
 
+            // 화면 갱신
             if (isHistory) updateHistoryView();
             else updateDateContext();
         }
@@ -335,13 +350,7 @@
                 const month = parseInt(dateMatch[1]);
                 const day = parseInt(dateMatch[2]);
 
-                historyData.push({
-                    year: year,
-                    month: month,
-                    day: day,
-                    subject: subjRaw,
-                    duration: duration
-                });
+                historyData.push({ year, month, day, subject: subjRaw, duration });
             });
 
             if (historyData.length > 0) {
@@ -457,12 +466,6 @@
             }
         }
 
-        // --- ID 생성 로직 수정 (핵심) ---
-        function generateSafeId() {
-            // 소수점 없는 안전한 문자열 ID 생성 (Timestamp + Random Int)
-            return 'id_' + Date.now().toString() + '_' + Math.floor(Math.random() * 1000).toString();
-        }
-
         function togglePasteArea() {
             document.getElementById('pasteAreaContainer').classList.toggle('hidden');
         }
@@ -547,7 +550,7 @@
             const activeWeekdays = new Set();
             
             if (currentTab === 'auto') {
-                // 안전한 셀렉터 사용
+                // 안전한 ID Selector 사용
                 const rows = document.querySelectorAll('#autoList .auto-row');
                 rows.forEach(row => {
                     const checkboxes = row.querySelectorAll('.day-chk:checked');
@@ -569,16 +572,17 @@
             }
         }
 
-        // --- 계산 로직 수정 (버그 픽스) ---
+        // --- 계산 로직 (안전한 ID 적용) ---
         function recalcRow(rowIdSuffix, type) {
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
+            
             if (type === 'auto') {
-                const selectedDays = [];
                 // 안전한 ID 셀렉터 사용
                 const row = document.getElementById(`arow-${rowIdSuffix}`);
-                if (!row) return; // 요소가 없으면 중단
-                
+                if (!row) return; 
+
+                const selectedDays = [];
                 row.querySelectorAll('.day-chk:checked').forEach(c => selectedDays.push(parseInt(c.value)));
                 
                 let count = 0;
@@ -652,7 +656,6 @@
             document.getElementById('dispTotal').innerText = total.toLocaleString() + '원';
         }
 
-        // --- ID 생성 로직 수정 (핵심) ---
         function addManualRow(nameVal = '', timeVal = '') {
             const id = generateSafeId(); 
             const html = `<div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm relative group manual-row" id="mrow-${id}">
