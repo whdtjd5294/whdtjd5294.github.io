@@ -457,9 +457,10 @@
             }
         }
 
-        // --- 안전한 ID 생성 함수 (소수점 제거) ---
+        // --- ID 생성 로직 수정 (핵심) ---
         function generateSafeId() {
-            return 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+            // 소수점 없는 안전한 문자열 ID 생성 (Timestamp + Random Int)
+            return 'id_' + Date.now().toString() + '_' + Math.floor(Math.random() * 1000).toString();
         }
 
         function togglePasteArea() {
@@ -537,13 +538,22 @@
                 calDiv.classList.add('mode-select');
             } else {
                 calBadge.innerText = "미사용"; calBadge.className = "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded";
+                calDiv.classList.remove('mode-auto', 'mode-select');
             }
 
             calDiv.innerHTML = ''; 
             const firstDay = new Date(year, month - 1, 1).getDay(); 
             const lastDate = new Date(year, month, 0).getDate();
             const activeWeekdays = new Set();
-            if (currentTab === 'auto') document.querySelectorAll('#tab-auto .day-chk:checked').forEach(box => activeWeekdays.add(parseInt(box.value)));
+            
+            if (currentTab === 'auto') {
+                // 안전한 셀렉터 사용
+                const rows = document.querySelectorAll('#autoList .auto-row');
+                rows.forEach(row => {
+                    const checkboxes = row.querySelectorAll('.day-chk:checked');
+                    checkboxes.forEach(box => activeWeekdays.add(parseInt(box.value)));
+                });
+            }
 
             for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`;
             for(let i=1; i<=lastDate; i++) {
@@ -567,7 +577,7 @@
                 const selectedDays = [];
                 // 안전한 ID 셀렉터 사용
                 const row = document.getElementById(`arow-${rowIdSuffix}`);
-                if (!row) return;
+                if (!row) return; // 요소가 없으면 중단
                 
                 row.querySelectorAll('.day-chk:checked').forEach(c => selectedDays.push(parseInt(c.value)));
                 
