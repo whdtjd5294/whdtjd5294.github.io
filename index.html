@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V28</title>
+    <title>에스에듀 반포관 수강료 계산기 V29</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -16,7 +16,6 @@
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
-        /* 달력 공통 */
         .calendar-grid div { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; margin: 2px auto; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
         .sun { color: #ef4444; } .sat { color: #3b82f6; }
         
@@ -25,24 +24,19 @@
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #dcfce7 !important; color: #166534 !important; font-weight: bold; border: 1px solid #86efac; }
 
-        /* 영수증 달력 (반응형 높이) */
         .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
         .receipt-cal-cell { background-color: white; min-height: 80px; height: auto; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         .rc-date { font-size: 0.8rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; width: 100%; text-align: center; }
         
-        .rc-subject { 
-            font-size: 0.75rem; width: 96%; text-align: center; padding: 4px 2px; border-radius: 4px; 
-            margin-bottom: 2px; white-space: normal; word-break: keep-all; font-weight: 700; line-height: 1.2; display: block; 
-        }
+        .rc-subject { font-size: 0.75rem; width: 96%; text-align: center; padding: 4px 2px; border-radius: 4px; margin-bottom: 2px; white-space: normal; word-break: keep-all; font-weight: 700; line-height: 1.2; display: block; }
         
-        /* 색상 테마 */
         .subj-default { background-color: #eff6ff; color: #004094; }
         .subj-math { background-color: #dbeafe; color: #1e40af; }
         .subj-kor { background-color: #dcfce7; color: #166534; }
         .subj-eng { background-color: #fee2e2; color: #991b1b; }
         .subj-sci { background-color: #f3e8ff; color: #6b21a8; }
         .subj-soc { background-color: #fef3c7; color: #92400e; }
-        .subj-makeup { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; } /* 보강용 주황색 */
+        .subj-makeup { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
 
         .rc-active-date { color: #1f2937; }
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
@@ -55,18 +49,15 @@
         #captureArea { position: relative; overflow: hidden; background-color: white; max-width: 1100px; width: 1100px; }
         .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
         
-        /* [레이아웃 제어] */
         .receipt-content { position: relative; z-index: 10; display: flex; width: 100%; transition: all 0.3s ease; }
         
-        /* 기본 모드 (가로 배치) */
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1.3; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
 
-        /* 이력 모드 (세로 배치 - 달력 위, 리스트 아래) */
         .layout-history { gap: 2rem; flex-direction: column; }
-        .layout-history .receipt-left { order: 2; width: 100%; } /* 리스트 */
-        .layout-history .receipt-right { order: 1; width: 100%; } /* 달력 */
+        .layout-history .receipt-left { order: 2; width: 100%; }
+        .layout-history .receipt-right { order: 1; width: 100%; }
         
         .th-nowrap { white-space: nowrap; }
         .custom-scroll::-webkit-scrollbar { width: 8px; }
@@ -154,52 +145,63 @@
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
-            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-8 bg-white transition-colors duration-300">
+            
+            <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300">
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" class="watermark-img" crossorigin="anonymous">
                 
-                <div class="text-center mb-10 relative z-20">
-                    <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" crossorigin="anonymous" class="h-24 mx-auto mb-3 object-contain">
-                    <h1 class="text-3xl font-black text-[#004094] mb-1 tracking-tight">에스에듀 반포관</h1>
-                    <p id="receiptSubTitle" class="text-sm text-gray-500 font-bold tracking-widest">수강료 안내서</p>
-                </div>
+                <div class="receipt-content layout-default" id="receiptContent">
+                    <div class="w-full flex flex-col items-center mb-6 absolute top-0 left-0 right-0 z-0 mt-8"> <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" crossorigin="anonymous" class="h-14 mx-auto mb-1 object-contain">
+                        <h1 class="text-2xl font-black text-[#004094] mb-0.5 tracking-tight">에스에듀 반포관</h1>
+                        <p id="receiptSubTitle" class="text-xs text-gray-500 font-bold tracking-widest">수강료 안내서</p>
+                    </div>
+                    <div class="w-full h-24 mb-4"></div>
 
-                <div id="receiptContent" class="receipt-content layout-default">
-                    
-                    <div class="receipt-left">
-                        <div class="flex justify-between items-end border-b-4 border-gray-800 pb-4 mb-8">
-                            <div><span class="text-sm text-gray-500 font-bold block mb-1">학생명</span><h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3></div>
-                            <div><div id="dateBadge" class="bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center"><span id="dispDate" class="text-lg text-optical-center">2026년 2월분</span></div></div>
+                    <div class="receipt-left relative z-10">
+                        <div class="flex justify-between items-end border-b-4 border-gray-800 pb-2 mb-6">
+                            <div><span class="text-xs text-gray-500 font-bold block mb-1">학생명</span><h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3></div>
+                            <div><div id="dateBadge" class="bg-[#004094] text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center"><span id="dispDate" class="text-base text-optical-center">2026년 2월분</span></div></div>
                         </div>
-                        <table class="w-full text-base mb-8">
-                            <thead><tr class="text-gray-500 border-b-2 border-gray-200"><th class="text-left py-3 pl-1 font-extrabold text-lg th-nowrap">과목 / 상세 내용</th><th id="thAmount" class="text-right py-3 pr-1 font-extrabold w-36 text-lg th-nowrap">금액</th></tr></thead>
+                        <table class="w-full text-base mb-6">
+                            <thead><tr class="text-gray-500 border-b-2 border-gray-200"><th class="text-left py-2 pl-1 font-extrabold text-lg th-nowrap">과목 / 상세 내용</th><th id="thAmount" class="text-right py-2 pr-1 font-extrabold w-36 text-lg th-nowrap">금액</th></tr></thead>
                             <tbody id="receiptBody"></tbody>
                         </table>
-                        
                         <div id="priceSummaryArea">
-                            <div class="border-t-2 border-gray-200 pt-4 space-y-3 mb-8">
+                            <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
                                 <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료 소계</span><span id="dispSubtotal" class="text-gray-800">0</span></div>
                                 <div class="flex justify-between text-red-500 font-bold text-lg" id="dispAdjRow"><span>이월/초과금 조정</span><span id="dispAdj">0</span></div>
                             </div>
-                            <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">최종 납부액</span><span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span></div>
+                            <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">최종 납부액</span><span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span></div>
                         </div>
+                        <div class="mt-6 text-xs text-gray-500 font-medium text-center"><p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p><p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p></div>
                     </div>
 
-                    <div class="receipt-right">
-                        <div id="receiptCalendarArea" class="mb-6 border-2 border-[#004094]/10 rounded-2xl p-6 bg-white/90 backdrop-blur-sm shadow-sm flex-1">
-                            <div class="text-center text-sm font-black text-[#004094] mb-4 flex items-center justify-center gap-2"><span class="text-lg">📅</span><span id="calTitleReceipt" class="text-optical-center">수업 일정 상세</span></div>
+                    <div class="receipt-right relative z-10">
+                        <div id="receiptCalendarArea" class="mb-4 border-2 border-[#004094]/10 rounded-2xl p-5 bg-white/90 backdrop-blur-sm shadow-sm flex-1">
+                            <div class="text-center text-sm font-black text-[#004094] mb-3 flex items-center justify-center gap-2"><span class="text-lg">📅</span><span id="calTitleReceipt" class="text-optical-center">수업 일정 상세</span></div>
                             <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2 pb-2 border-b border-gray-200"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-[#004094]">토</div></div>
                             <div id="receiptMiniCalGrid" class="receipt-cal-grid rounded-lg overflow-hidden"></div>
                         </div>
-                        <div id="infoBox" class="bg-gray-50 p-5 rounded-xl text-sm text-gray-600 border border-gray-100 shadow-inner">
-                            <h4 class="font-bold text-[#004094] mb-3 flex items-center gap-1 text-base"><span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span></h4>
+                        <div id="infoBox" class="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 border border-gray-100 shadow-inner">
+                            <h4 class="font-bold text-[#004094] mb-2 flex items-center gap-1 text-base"><span class="text-optical-center">ℹ️ 수강료 및 수업 안내</span></h4>
                             <ul class="info-list font-medium"><li><b>수업 취소:</b> 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다. (당일 취소는 환불/이월 불가)</li><li><b>보충 안내:</b> 취소된 수업 기준 2주 안에 보충 진행합니다.</li><li><b>결제 방법:</b> '결제링크', 서울페이/제로페이, 계좌이체 가능합니다.</li></ul>
                         </div>
                     </div>
                 </div> 
-                
-                <div class="mt-8 text-center text-xs text-gray-500 font-medium"><p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p><p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p></div>
             </div>
-            <button onclick="downloadImage()" class="w-full max-w-[1100px] py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-10 transform hover:-translate-y-1 text-lg"><span class="text-optical-center">📸 학부모 전송용 이미지 저장</span></button>
+
+            <div class="w-full max-w-[1100px] mb-6">
+                <button onclick="downloadImage()" class="w-full py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-4 transform hover:-translate-y-1 text-lg">
+                    <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
+                </button>
+                
+                <div class="bg-gray-100 border border-gray-300 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-sm font-bold text-gray-700">💬 학부모 전송용 텍스트 (자동생성)</h4>
+                        <button onclick="copyGeneratedText()" class="text-xs bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-800">텍스트 복사</button>
+                    </div>
+                    <textarea id="generatedTextArea" class="w-full h-48 text-xs p-3 border border-gray-300 rounded bg-white font-mono leading-relaxed resize-none focus:outline-none" readonly></textarea>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -223,7 +225,7 @@
         function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
 
         function getSubjectColorClass(name, isMakeup) {
-            if (isMakeup) return 'subj-makeup'; // 보강은 무조건 주황색
+            if (isMakeup) return 'subj-makeup';
             if (!name) return 'subj-default';
             const n = name.trim();
             if (n.includes('수학')) return 'subj-math';
@@ -234,7 +236,6 @@
             return 'subj-default';
         }
 
-        // Access 시간 파싱 (오후 5:00 -> 17:00)
         function parseAccessTime(tStr) {
             if(!tStr) return '';
             const isPM = tStr.includes('오후');
@@ -263,7 +264,6 @@
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             
-            // [레이아웃 변경] 클래스 토글
             const contentDiv = document.getElementById('receiptContent');
             if (isHistory) {
                 contentDiv.classList.remove('layout-default');
@@ -276,8 +276,8 @@
             document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
             document.getElementById('dateBadge').className = isHistory 
-                ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' 
-                : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
+                ? 'bg-green-600 text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center' 
+                : 'bg-[#004094] text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center';
             
             const capArea = document.getElementById('captureArea');
             if(isHistory) { capArea.classList.remove('border-[#004094]'); capArea.classList.add('border-green-600'); } 
@@ -285,6 +285,52 @@
             document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
             
             if (isHistory) updateHistoryView(); else updateDateContext();
+        }
+
+        // [NEW] 텍스트 생성 및 업데이트 함수
+        function updateInfoText(totalAmount, adjustment) {
+            if(currentTab === 'history') return; // 이력 모드에선 텍스트 생성 생략 (필요시 추가)
+
+            const name = document.getElementById('studentName').value || '학생명';
+            const month = document.getElementById('targetMonth').value;
+            const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0';
+            const totalStr = (totalAmount + adjustment).toLocaleString();
+
+            const text = `※전체 재원생 수강료 안내※
+안녕하세요 에스학원입니다.
+수강료 안내 드립니다.
+
+${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
+이전 달의 이월/초과금은 ${adjStr} 원입니다.
+
+학부모님 연락처로 결제링크 발송드리겠습니다.
+
+납부금액보다 수업 수강료가 적거나 많을 경우
+다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.
+
+**수강료 안내에서 회당란 가격은 시간당 가격이고
+횟수란, 한 달 총 수강 시간입니다.
+
+※ 수업 취소 안내 ※
+수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.
+당일취소는 환불되거나 이월되지 않습니다.
+[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 
+취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.
+양해 부탁드립니다. ]
+[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]
+
+‘결제링크’ 통해 카드 분할 결제 가능합니다.
+그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. 
+감사합니다.`;
+
+            document.getElementById('generatedTextArea').value = text;
+        }
+
+        function copyGeneratedText() {
+            const copyText = document.getElementById("generatedTextArea");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다."));
         }
 
         function processHistoryPaste() {
@@ -295,32 +341,20 @@
             lines.forEach(line => {
                 const cols = line.split('\t');
                 if (cols.length < 10) return; 
-                
                 const dateMatch = cols[1].match(/(\d+)\/(\d+)/);
                 if (!dateMatch) return;
-                
                 const month = parseInt(dateMatch[1]);
                 const day = parseInt(dateMatch[2]);
                 const subjRaw = cols[2];
-                const attend = cols[4]; // 출결
+                const attend = cols[4]; 
                 const teacher = cols[5];
                 const start = parseAccessTime(cols[6]);
                 const end = parseAccessTime(cols[7]);
                 const hours = parseFloat(cols[8]);
                 const amount = parseInt(cols[10].replace(/,/g, '')) || 0;
-
-                // 보강/결석 감지
                 const isMakeup = subjRaw.includes('보강') || attend.includes('보강') || attend.includes('취소');
 
-                historyData.push({ 
-                    year, month, day, 
-                    subject: subjRaw, 
-                    teacher: teacher,
-                    timeRange: `${start}~${end}`,
-                    hours: hours,
-                    amount: amount,
-                    isMakeup: isMakeup
-                });
+                historyData.push({ year, month, day, subject: subjRaw, teacher, timeRange: `${start}~${end}`, hours, amount, isMakeup });
             });
             if (historyData.length > 0) {
                 document.getElementById('targetMonth').value = historyData[0].month;
@@ -394,6 +428,9 @@
             }
 
             document.getElementById('dispTotal').innerText = totalAmount.toLocaleString() + '원';
+            
+            // 이력 모드에서는 텍스트 생성기 비움 (또는 별도 로직 가능)
+            document.getElementById('generatedTextArea').value = "이력 확인 모드에서는 수강료 안내 문자가 생성되지 않습니다.";
 
             renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({
                 day: d.day, 
@@ -404,7 +441,6 @@
             })));
         }
 
-        // --- 공통 기능 ---
         function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
         
         function processSmartPaste() {
@@ -592,6 +628,9 @@
             document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
             document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원';
             renderCommonReceiptCalendar(allEvents);
+            
+            // [NEW] 텍스트 생성 호출
+            updateInfoText(subtotal, adj);
         }
 
         function addManualRow(nameVal = '', timeVal = '') {
