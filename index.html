@@ -53,9 +53,11 @@
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
+
         .layout-history { gap: 2rem; flex-direction: column; }
         .layout-history .receipt-left { order: 2; width: 100%; }
         .layout-history .receipt-right { order: 1; width: 100%; }
+        
         .layout-payment { flex-direction: column; gap: 2rem; }
         .layout-payment .receipt-left { width: 100%; }
         .layout-payment .receipt-right { display: none; } 
@@ -90,7 +92,7 @@
                     </div>
                     <div class="flex gap-3">
                         <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetYear" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
-                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">월</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
+                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
                     </div>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-100">
@@ -127,22 +129,29 @@
                     <button onclick="switchTab('payment')" id="btn-payment" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-purple-600 hover:text-purple-700 bg-purple-50">납부/차액</button>
                 </div>
                 <div class="p-4 bg-gray-50 h-[450px] overflow-y-auto custom-scroll">
-                    <div id="tab-auto" class="hidden"><div id="autoList" class="space-y-3"></div><button onclick="addAutoRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button></div>
-                    <div id="tab-select" class="hidden"><div id="selectList" class="space-y-3"></div><button onclick="addSelectRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button></div>
-                    <div id="tab-manual" class="hidden"><div id="manualList" class="space-y-3"></div><button onclick="addManualRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button></div>
-                    
+                    <div id="tab-auto" class="hidden">
+                        <div id="autoList" class="space-y-3"></div>
+                        <button onclick="addAutoRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
+                    </div>
+                    <div id="tab-select" class="hidden">
+                        <div id="selectList" class="space-y-3"></div>
+                        <button onclick="addSelectRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
+                    </div>
+                    <div id="tab-manual" class="hidden">
+                        <div id="manualList" class="space-y-3"></div>
+                        <button onclick="addManualRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button>
+                    </div>
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
                             <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 이력 데이터</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50 whitespace-pre" placeholder="Access에서 복사한 데이터를 붙여넣으세요."></textarea>
-                            <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석</button>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요."></textarea>
+                            <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
                     </div>
-                    
                     <div id="tab-payment" class="hidden">
                         <div class="bg-white p-3 rounded border border-purple-200 mb-3">
                             <h4 class="text-xs font-bold text-purple-700 mb-2">💰 Access 납부/수업 데이터</h4>
-                            <textarea id="paymentPasteInput" class="w-full h-40 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 font-mono resize-none bg-gray-50 whitespace-pre" placeholder="Access에서 복사한 데이터를 '제목(헤더)' 포함해서 붙여넣으세요."></textarea>
+                            <textarea id="paymentPasteInput" class="w-full h-40 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 font-mono resize-none bg-gray-50 whitespace-pre" placeholder="Access에서 복사한 데이터를 제목(헤더) 포함해서 붙여넣으세요."></textarea>
                             <button onclick="processPaymentPaste()" class="w-full mt-2 py-2 bg-purple-600 text-white text-xs font-bold rounded hover:bg-purple-700">납부 및 차액 계산</button>
                         </div>
                         
@@ -243,179 +252,27 @@
         function generateSafeId() { return 'item_' + (++rowCounter); }
         function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
 
-        // [납부/차액] 스마트 파서
-        function processPaymentPaste() {
-            const raw = document.getElementById('paymentPasteInput').value;
-            const lines = raw.split('\n');
-            paymentData = []; 
-            const debugTbody = document.getElementById('debugTableBody');
-            debugTbody.innerHTML = '';
-            
-            // 1. 헤더 탐색
-            let colMap = {};
-            let headerFound = false;
-
-            for(let i=0; i<lines.length; i++) {
-                const cols = lines[i].split('\t');
-                // 헤더 판단 기준: '반명'과 '금액' 관련 키워드가 있는 줄
-                if (cols.some(c => c.includes('반명')) && (cols.some(c => c.includes('금액')) || cols.some(c => c.includes('수강료')))) {
-                    cols.forEach((c, idx) => {
-                        if(c.includes('반명')) colMap.name = idx;
-                        else if(c.includes('TR') || c.includes('이름')) colMap.tr = idx;
-                        else if(c.includes('■금액') || c.trim() === '금액') colMap.net = idx; // 최우선 금액
-                        else if(c.includes('수강료')) colMap.gross = idx;
-                        else if(c.includes('할인')) colMap.disc = idx;
-                        else if(c.includes('납부') || c.includes('결제')) colMap.pay = idx;
-                    });
-                    headerFound = true;
-                    // 헤더 이후 줄부터 데이터로 처리
-                    lines.splice(0, i+1); 
-                    break;
-                }
-            }
-
-            // 2. 데이터 파싱
-            lines.forEach(line => {
-                if(!line.trim()) return;
-                const cols = line.split('\t');
-                
-                // 요약행 제외 (별표나 '요약' 시작)
-                if(line.trim().startsWith('*') || line.trim().startsWith('요약') || (cols[0] && cols[0].includes('요약'))) return;
-
-                let name = '', amount = 0, discount = 0, teacher = '';
-                let type = 'unknown';
-
-                // Case A: 헤더를 찾았을 때 (정확한 위치)
-                if(headerFound) {
-                    name = cols[colMap.name] || '';
-                    teacher = extractTeacherName(name) || (colMap.tr ? cols[colMap.tr] : '');
-                    
-                    // 금액 파싱 (콤마 제거)
-                    const parseM = (v) => parseInt((v || '').replace(/,/g, '')) || 0;
-                    
-                    let net = parseM(cols[colMap.net]);
-                    let gross = parseM(cols[colMap.gross]);
-                    let disc = parseM(cols[colMap.disc]);
-                    let payAmt = parseM(cols[colMap.pay]);
-
-                    // 납부 판단
-                    if (net < 0) { // 금액 열이 음수면 납부
-                        type = 'payment';
-                        amount = Math.abs(net);
-                    } else if (name.includes('납부') || name.includes('결제')) {
-                        type = 'payment';
-                        // 납부금액이 별도 열에 있거나(net이 0일때), net에 음수로 있거나
-                        amount = (net !== 0) ? Math.abs(net) : Math.abs(payAmt); 
-                    } else {
-                        // 수업
-                        type = 'class';
-                        amount = net; // 실청구액
-                        discount = disc;
-                        
-                        // 할인 열이 비었는데 수강료 > 실청구액이면 차액을 할인으로
-                        if (discount === 0 && gross > amount) discount = gross - amount;
-                    }
-                } 
-                // Case B: 헤더를 못 찾았을 때 (값 기반 추론)
-                else {
-                    const numbers = cols.map(c => parseInt(c.replace(/,/g, ''))).filter(n => !isNaN(n));
-                    // 음수가 있으면 납부
-                    const neg = numbers.find(n => n < 0);
-                    const payKw = ['납부','결제','카드','현금'].some(k => line.includes(k));
-                    
-                    if (neg || payKw) {
-                        type = 'payment';
-                        amount = Math.abs(neg || Math.max(...numbers)); // 음수가 없으면 가장 큰 수
-                        name = "기납부 확인";
-                    } else {
-                        // 양수만 있으면 수업 (가장 큰 수를 금액으로)
-                        type = 'class';
-                        const subjKw = cols.find(c => ['수학','영어','국어','과학'].some(k => c.includes(k)));
-                        name = subjKw || '기타 수업';
-                        amount = Math.max(...numbers);
-                        teacher = extractTeacherName(name);
-                    }
-                }
-
-                if (type !== 'unknown' && amount > 0) {
-                    paymentData.push({ type, name, teacher, amount, discount });
-                    
-                    // 검증용 테이블에 추가
-                    const rowClass = type === 'payment' ? 'debug-row-payment' : 'debug-row-class';
-                    debugTbody.innerHTML += `<tr class="${rowClass}"><td>${type==='payment'?'납부':'수업'}</td><td>${name}</td><td>${amount.toLocaleString()}</td><td>${discount.toLocaleString()}</td></tr>`;
-                }
-            });
-
-            document.getElementById('paymentDebugArea').classList.remove('hidden');
-            updatePaymentView();
+        function getSubjectColorClass(name, isMakeup) {
+            if (isMakeup) return 'subj-makeup';
+            if (!name) return 'subj-default';
+            const n = name.trim();
+            if (n.includes('수학')) return 'subj-math';
+            if (n.includes('국어')) return 'subj-kor';
+            if (n.includes('영어')) return 'subj-eng';
+            if (['과학', '화학', '생명', '물리', '지학', '물지'].some(k => n.includes(k))) return 'subj-sci';
+            if (['사회', '사탐', '사문', '한국사', '세계사', '지리', '한지', '세지', '윤리', '윤사', '역사'].some(k => n.includes(k))) return 'subj-soc';
+            return 'subj-default';
         }
 
-        // --- 기타 함수들 (기존과 동일) ---
-        function extractTeacherName(text) {
-            if(!text) return '';
-            const parenthesisMatch = text.match(/\(([^)]+)\)/);
-            if (parenthesisMatch) return parenthesisMatch[1];
-            const parts = text.split('-');
-            for(let p of parts) if(p.trim().toUpperCase().endsWith('T')) return p.trim();
-            return ''; 
+        function parseAccessTime(tStr) {
+            if(!tStr) return '';
+            const isPM = tStr.includes('오후');
+            let [h, m] = tStr.replace('오전', '').replace('오후', '').trim().split(':');
+            h = parseInt(h);
+            if(isPM && h !== 12) h += 12;
+            if(!isPM && h === 12) h = 0; 
+            return `${h}:${m}`;
         }
-
-        function updatePaymentView() {
-            if (currentTab !== 'payment') return;
-            const tbody = document.getElementById('receiptBody');
-            tbody.innerHTML = '';
-            let totalTuition = 0, totalPaid = 0, totalDiscount = 0;
-
-            paymentData.forEach(d => {
-                if (d.type === 'class') {
-                    // 수강료 총액 계산 시: 실청구액(amount) + 할인액(discount) = 원 수강료
-                    const originalPrice = d.amount + d.discount;
-                    totalTuition += originalPrice;
-                    totalDiscount += d.discount;
-                    
-                    const parts = d.name.split('-');
-                    const mainName = parts[0];
-                    let badges = '';
-                    if (d.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${d.teacher}</span>`;
-                    let discountText = d.discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${d.discount.toLocaleString()}</div>` : '';
-
-                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">${d.name}</div>${discountText}</td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${d.amount.toLocaleString()}원</td></tr>`;
-                } else {
-                    totalPaid += d.amount;
-                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 bg-purple-50"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center gap-2"><span class="font-bold text-purple-700">기납부 확인</span></div></td><td class="py-3 pr-1 text-right font-mono text-lg font-bold text-purple-700 align-top pt-2.5">-${d.amount.toLocaleString()}원</td></tr>`;
-                }
-            });
-
-            const balance = totalTuition - totalDiscount - totalPaid;
-            
-            // 할인액 표시 여부: 0원이면 숨김
-            const discountRow = totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-lg"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : '';
-
-            const summaryHtml = `
-                <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
-                    <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료/초과금 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
-                    ${discountRow}
-                    <div class="flex justify-between text-purple-600 font-bold text-lg"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div>
-                </div>
-                <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
-                    <span class="text-xl font-black text-gray-800">미납/차액 합계</span>
-                    <span class="text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-blue-600'}">${balance.toLocaleString()}원</span>
-                </div>
-            `;
-            document.getElementById('priceSummaryArea').innerHTML = summaryHtml;
-            document.getElementById('priceSummaryArea').classList.remove('hidden');
-        }
-
-        // [기타 기본 기능들은 V35와 동일하게 유지]
-        // ... (getSubjectColorClass, parseAccessTime, switchTab, updateInfoText, copyGeneratedText 등)
-        // ... (processHistoryPaste, updateHistoryView, renderHistoryReceipt 등)
-        // ... (updateAll, addManualRow, addAutoRow, addSelectRow, setActiveSelectRow, removeEl, downloadImage 등)
-        
-        // (코드 길이 제한으로 중복되는 기본 로직은 위 V35 코드를 그대로 사용하되 processPaymentPaste만 교체하면 됩니다.
-        //  하지만 사용자 편의를 위해 전체 코드를 제공하는 것이 맞습니다. 아래에 나머지 필수 함수들을 채워넣습니다.)
-
-        function getSubjectColorClass(name, isMakeup) { if (isMakeup) return 'subj-makeup'; if (!name) return 'subj-default'; const n = name.trim(); if (n.includes('수학')) return 'subj-math'; if (n.includes('국어')) return 'subj-kor'; if (n.includes('영어')) return 'subj-eng'; if (['과학', '화학', '생명', '물리', '지학', '물지'].some(k => n.includes(k))) return 'subj-sci'; if (['사회', '사탐', '사문', '한국사', '세계사', '지리', '한지', '세지', '윤리', '윤사', '역사'].some(k => n.includes(k))) return 'subj-soc'; return 'subj-default'; }
-        function parseAccessTime(tStr) { if(!tStr) return ''; const isPM = tStr.includes('오후'); let [h, m] = tStr.replace('오전', '').replace('오후', '').trim().split(':'); h = parseInt(h); if(isPM && h !== 12) h += 12; if(!isPM && h === 12) h = 0; return `${h}:${m}`; }
 
         function switchTab(tab) {
             currentTab = tab;
@@ -470,7 +327,7 @@
 
             document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
             document.getElementById('generatedTextArea').value = (isHistory || isPayment) ? "이 모드에서는 자동 생성 문자가 지원되지 않습니다." : "";
-            document.getElementById('paymentDebugArea').classList.add('hidden'); // 탭 전환시 디버그 숨김
+            document.getElementById('paymentDebugArea').classList.add('hidden'); 
 
             if (isHistory) updateHistoryView(); 
             else if (isPayment) updatePaymentView();
@@ -480,12 +337,145 @@
         function updateInfoText(totalAmount, adjustment) { if(currentTab === 'history' || currentTab === 'payment') return; const name = document.getElementById('studentName').value || '학생명'; const month = document.getElementById('targetMonth').value; const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0'; const totalStr = (totalAmount + adjustment).toLocaleString(); const text = `※전체 재원생 수강료 안내※\n안녕하세요 에스학원입니다.\n수강료 안내 드립니다.\n\n${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.\n이전 달의 이월/초과금은 ${adjStr} 원입니다.\n\n학부모님 연락처로 결제링크 발송드리겠습니다.\n\n납부금액보다 수업 수강료가 적거나 많을 경우\n다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.\n\n**수강료 안내에서 회당란 가격은 시간당 가격이고\n횟수란, 한 달 총 수강 시간입니다.\n\n※ 수업 취소 안내 ※\n수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.\n당일취소는 환불되거나 이월되지 않습니다.\n[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 \n취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.\n양해 부탁드립니다. ]\n[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]\n\n‘결제링크’ 통해 카드 분할 결제 가능합니다.\n그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. \n감사합니다.`; document.getElementById('generatedTextArea').value = text; }
         function copyGeneratedText() { const copyText = document.getElementById("generatedTextArea"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다.")); }
         
-        // (이력 확인 로직 생략 - V35와 동일)
+        function extractTeacherName(text) { const parenthesisMatch = text.match(/\(([^)]+)\)/); if (parenthesisMatch) return parenthesisMatch[1]; const parts = text.split('-'); for(let p of parts) if(p.trim().toUpperCase().endsWith('T')) return p.trim(); return ''; }
+
+        function processPaymentPaste() {
+            const raw = document.getElementById('paymentPasteInput').value;
+            const lines = raw.split('\n');
+            paymentData = []; 
+            const debugTbody = document.getElementById('debugTableBody');
+            debugTbody.innerHTML = '';
+            
+            let colMap = {};
+            let headerFound = false;
+
+            for(let i=0; i<lines.length; i++) {
+                const cols = lines[i].split('\t');
+                if (cols.some(c => c.includes('반명')) && (cols.some(c => c.includes('금액')) || cols.some(c => c.includes('수강료')))) {
+                    cols.forEach((c, idx) => {
+                        if(c.includes('반명')) colMap.name = idx;
+                        else if(c.includes('TR') || c.includes('이름')) colMap.tr = idx;
+                        else if(c.includes('■금액') || c.trim() === '금액') colMap.net = idx; 
+                        else if(c.includes('수강료')) colMap.gross = idx;
+                        else if(c.includes('할인')) colMap.disc = idx;
+                        else if(c.includes('납부') || c.includes('결제')) colMap.pay = idx;
+                    });
+                    headerFound = true;
+                    lines.splice(0, i+1); 
+                    break;
+                }
+            }
+
+            lines.forEach(line => {
+                if(!line.trim()) return;
+                const cols = line.split('\t');
+                
+                // [수정] 요약행 제외 (별표, '요약' 시작, 또는 첫번째 컬럼이 '요약')
+                if(line.trim().startsWith('*') || line.trim().startsWith('요약') || (cols[0] && cols[0].trim() === '요약')) return;
+
+                let name = '', amount = 0, discount = 0, teacher = '';
+                let type = 'unknown';
+
+                if(headerFound) {
+                    name = cols[colMap.name] || '';
+                    teacher = extractTeacherName(name) || (colMap.tr ? cols[colMap.tr] : '');
+                    const parseM = (v) => parseInt((v || '').replace(/,/g, '')) || 0;
+                    
+                    let net = parseM(cols[colMap.net]);
+                    let gross = parseM(cols[colMap.gross]);
+                    let disc = parseM(cols[colMap.disc]);
+                    let payAmt = parseM(cols[colMap.pay]);
+
+                    if (net < 0) { 
+                        type = 'payment';
+                        amount = Math.abs(net);
+                    } else if (name.includes('납부') || name.includes('결제')) {
+                        type = 'payment';
+                        amount = (net !== 0) ? Math.abs(net) : Math.abs(payAmt); 
+                    } else {
+                        type = 'class';
+                        amount = net; 
+                        discount = disc;
+                        if (discount === 0 && gross > amount) discount = gross - amount;
+                    }
+                } 
+                else {
+                    const numbers = cols.map(c => parseInt(c.replace(/,/g, ''))).filter(n => !isNaN(n));
+                    const neg = numbers.find(n => n < 0);
+                    const payKw = ['납부','결제','카드','현금'].some(k => line.includes(k));
+                    
+                    if (neg || payKw) {
+                        type = 'payment';
+                        amount = Math.abs(neg || Math.max(...numbers)); 
+                        name = "기납부 확인";
+                    } else {
+                        type = 'class';
+                        const subjKw = cols.find(c => ['수학','영어','국어','과학'].some(k => c.includes(k)));
+                        name = subjKw || '기타 수업';
+                        amount = Math.max(...numbers);
+                        teacher = extractTeacherName(name);
+                    }
+                }
+
+                if (type !== 'unknown' && amount > 0) {
+                    paymentData.push({ type, name, teacher, amount, discount });
+                    const rowClass = type === 'payment' ? 'debug-row-payment' : 'debug-row-class';
+                    debugTbody.innerHTML += `<tr class="${rowClass}"><td>${type==='payment'?'납부':'수업'}</td><td>${name}</td><td>${amount.toLocaleString()}</td><td>${discount.toLocaleString()}</td></tr>`;
+                }
+            });
+
+            document.getElementById('paymentDebugArea').classList.remove('hidden');
+            updatePaymentView();
+        }
+
+        function updatePaymentView() {
+            if (currentTab !== 'payment') return;
+            const tbody = document.getElementById('receiptBody');
+            tbody.innerHTML = '';
+            let totalTuition = 0, totalPaid = 0, totalDiscount = 0;
+
+            paymentData.filter(d => d.type === 'class').forEach(d => {
+                const originalPrice = d.amount + d.discount;
+                totalTuition += originalPrice;
+                totalDiscount += d.discount;
+                
+                const parts = d.name.split('-');
+                const mainName = parts[0];
+                let badges = '';
+                if (d.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${d.teacher}</span>`;
+                let discountText = d.discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${d.discount.toLocaleString()}</div>` : '';
+
+                tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">${d.name}</div>${discountText}</td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${d.amount.toLocaleString()}원</td></tr>`;
+            });
+
+            paymentData.filter(d => d.type === 'payment').forEach(d => {
+                totalPaid += d.amount;
+                tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 bg-purple-50"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center gap-2"><span class="font-bold text-purple-700">기납부 확인</span></div></td><td class="py-3 pr-1 text-right font-mono text-lg font-bold text-purple-700 align-top pt-2.5">-${d.amount.toLocaleString()}원</td></tr>`;
+            });
+
+            const balance = totalTuition - totalDiscount - totalPaid;
+            const discountRow = totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-lg"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : '';
+
+            const summaryHtml = `
+                <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
+                    <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료/초과금 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
+                    ${discountRow}
+                    <div class="flex justify-between text-purple-600 font-bold text-lg"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <span class="text-xl font-black text-gray-800">미납/차액 합계</span>
+                    <span class="text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-blue-600'}">${balance.toLocaleString()}원</span>
+                </div>
+            `;
+            document.getElementById('priceSummaryArea').innerHTML = summaryHtml;
+            document.getElementById('priceSummaryArea').classList.remove('hidden');
+        }
+
+        // (기본 로직 생략 - V35와 동일)
         function processHistoryPaste() { const raw = document.getElementById('historyPasteInput').value; const lines = raw.split('\n'); historyData = []; const year = parseInt(document.getElementById('targetYear').value); lines.forEach(line => { const cols = line.split('\t'); if (cols.length < 10) return; const dateMatch = cols[1].match(/(\d+)\/(\d+)/); if (!dateMatch) return; const month = parseInt(dateMatch[1]); const day = parseInt(dateMatch[2]); const subjRaw = cols[2]; const attend = cols[4]; const teacher = cols[5]; const start = parseAccessTime(cols[6]); const end = parseAccessTime(cols[7]); const hours = parseFloat(cols[8]); const amount = parseInt(cols[10].replace(/,/g, '')) || 0; const isMakeup = subjRaw.includes('보강') || attend.includes('보강') || attend.includes('취소'); historyData.push({ year, month, day, subject: subjRaw, teacher, timeRange: `${start}~${end}`, hours, amount, isMakeup }); }); if (historyData.length > 0) { document.getElementById('targetMonth').value = historyData[0].month; alert(`${historyData.length}건의 이력이 확인되었습니다.`); } updateHistoryView(); }
         function updateHistoryView() { if (currentTab !== 'history') return; const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); document.getElementById('calTitle').innerText = `${month}월 이력`; document.getElementById('calBadge').innerText = "이력 표시"; const calDiv = document.getElementById('calendarGrid'); calDiv.innerHTML = ''; calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400 mode-history"; const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate(); const dayCounts = {}; historyData.forEach(d => { if(d.month === month) dayCounts[d.day] = true; }); for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`; for(let i=1; i<=lastDate; i++) { let div = document.createElement('div'); div.innerText = i; if(dayCounts[i]) div.className = "history-day"; calDiv.appendChild(div); } renderHistoryReceipt(); }
         function renderHistoryReceipt() { const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); document.getElementById('dispName').innerText = document.getElementById('studentName').value || '학생명'; document.getElementById('dispDate').innerText = `${year}년 ${month}월분`; const tbody = document.getElementById('receiptBody'); tbody.innerHTML = ''; const subjectMap = {}; let totalAmount = 0; historyData.forEach(d => { if(d.month !== month) return; const key = d.subject; if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, totalAmount: 0, isMakeup: d.isMakeup }; subjectMap[key].count++; subjectMap[key].totalTime += d.hours; subjectMap[key].totalAmount += d.amount; totalAmount += d.amount; }); for (const [subjName, data] of Object.entries(subjectMap)) { const parts = subjName.split('-'); const mainName = parts[0]; let badges = ''; if(parts.length > 1) badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`; if(data.isMakeup) badges += `<span class="badge-base makeup-badge text-optical-center">보강/변경</span>`; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 (${data.totalTime}시간)</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.totalAmount.toLocaleString()}원</td></tr>`; } document.getElementById('dispTotal').innerText = totalAmount.toLocaleString() + '원'; renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({ day: d.day, name: `${d.isMakeup ? '[보강]' : ''}${d.subject.split('-')[0]} ${d.timeRange}`, type: 'history', rawName: d.subject, isMakeup: d.isMakeup }))); }
 
-        // (기본 계산기 로직 - V35와 동일)
         function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
         function processSmartPaste() { const rawText = document.getElementById('smartPasteInput').value; if (!rawText.trim()) return; const lines = rawText.split('\n'); lines.forEach(line => { line = line.trim(); if (!line) return; let detectedTime = 0; let cleanName = line; const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i); if (timeMatch) detectedTime = parseFloat(timeMatch[1]); if (currentTab === 'manual') addManualRow(cleanName, detectedTime); else if (currentTab === 'select') addSelectRow(cleanName); else addAutoRow(cleanName); }); document.getElementById('smartPasteInput').value = ''; alert(`${lines.length}개의 과목이 추가되었습니다.`); updateAll(); }
         function resetAndUpdate() { excludedDates.clear(); for (const key in selectRowDates) { selectRowDates[key].clear(); } if(currentTab === 'history') updateHistoryView(); else if(currentTab === 'payment') updatePaymentView(); else updateDateContext(); }
