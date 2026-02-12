@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V26</title>
+    <title>에스에듀 반포관 수강료 계산기 V27</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -16,36 +16,45 @@
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
+        /* 달력 공통 */
         .calendar-grid div { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; margin: 2px auto; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
         .sun { color: #ef4444; } .sat { color: #3b82f6; }
         
+        /* 모드별 스타일 */
         .mode-auto .highlight-day { background-color: #dbeafe; color: #004094; font-weight: bold; border: 1px solid #004094; }
         .mode-auto .excluded-day { background-color: #fee2e2 !important; color: #ef4444 !important; text-decoration: line-through; opacity: 0.7; border: 1px dashed #ef4444; }
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
-        .mode-history .history-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
+        .mode-history .history-day { background-color: #dcfce7 !important; color: #166534 !important; font-weight: bold; border: 1px solid #86efac; }
 
-        /* [영수증 달력] */
+        /* [수정] 영수증 내부 달력 (자동 높이 조절 & 줄바꿈 허용) */
         .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
-        .receipt-cal-cell { background-color: white; min-height: 70px; padding: 4px 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        .receipt-cal-cell { 
+            background-color: white; 
+            min-height: 80px; /* 기본 높이 확보 */
+            height: auto;     /* 내용에 따라 늘어남 */
+            padding: 4px 2px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+        }
         .rc-date { font-size: 0.75rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; }
         
-        /* [과목별 색상 스타일] */
+        /* [수정] 달력 내 과목 표시 (줄바꿈 허용) */
         .rc-subject { 
-            font-size: 0.8rem; width: 92%; text-align: center; padding: 4px 0; border-radius: 4px; 
-            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            font-weight: 800; line-height: 1.2; display: block; 
+            font-size: 0.7rem; /* 글자 크기 조정 */
+            width: 96%; text-align: center; 
+            padding: 4px 2px; border-radius: 4px; 
+            margin-bottom: 2px; 
+            white-space: normal; /* 줄바꿈 허용 */
+            word-break: keep-all; /* 단어 단위 줄바꿈 */
+            font-weight: 700; line-height: 1.2; 
+            display: block; 
         }
-        /* 기본(기타) - 남색 */
+        
+        /* 색상 테마 */
         .subj-default { background-color: #eff6ff; color: #004094; }
-        /* 수학 - 파랑 */
         .subj-math { background-color: #dbeafe; color: #1e40af; }
-        /* 국어 - 초록 */
         .subj-kor { background-color: #dcfce7; color: #166534; }
-        /* 영어 - 빨강 */
         .subj-eng { background-color: #fee2e2; color: #991b1b; }
-        /* 과학 - 보라 */
         .subj-sci { background-color: #f3e8ff; color: #6b21a8; }
-        /* 사회 - 갈색/노랑 */
         .subj-soc { background-color: #fef3c7; color: #92400e; }
 
         .rc-active-date { color: #1f2937; }
@@ -66,7 +75,9 @@
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .active-row { border: 2px solid #004094 !important; background-color: #f0f7ff !important; }
         #pasteAreaContainer { transition: all 0.3s ease; }
-        .no-wrap-cell { white-space: nowrap; }
+        
+        /* [수정] 테이블 셀 줄바꿈 금지 (레이아웃 깨짐 방지) */
+        .th-nowrap { white-space: nowrap; }
     </style>
 </head>
 <body class="bg-gray-100 p-6 min-h-screen font-[400]">
@@ -133,7 +144,7 @@
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
                             <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 데이터 붙여넣기</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access 데이터..."></textarea>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 여기에 붙여넣으세요.&#13;&#10;[연결|일자|반명|관|출결|TR|시작|종료|시간|시간당|금액]"></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
                     </div>
@@ -160,9 +171,10 @@
                             <div><div id="dateBadge" class="bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center"><span id="dispDate" class="text-lg text-optical-center">2026년 2월분</span></div></div>
                         </div>
                         <table class="w-full text-base mb-8">
-                            <thead><tr class="text-gray-500 border-b-2 border-gray-200"><th class="text-left py-3 pl-1 font-extrabold text-lg">과목 / 상세 내용</th><th id="thAmount" class="text-right py-3 pr-1 font-extrabold w-36 text-lg">금액</th></tr></thead>
+                            <thead><tr class="text-gray-500 border-b-2 border-gray-200"><th class="text-left py-3 pl-1 font-extrabold text-lg th-nowrap">과목 / 상세 내용</th><th id="thAmount" class="text-right py-3 pr-1 font-extrabold w-36 text-lg th-nowrap">금액</th></tr></thead>
                             <tbody id="receiptBody"></tbody>
                         </table>
+                        
                         <div id="priceSummaryArea">
                             <div class="border-t-2 border-gray-200 pt-4 space-y-3 mb-8">
                                 <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료 소계</span><span id="dispSubtotal" class="text-gray-800">0</span></div>
@@ -170,6 +182,7 @@
                             </div>
                             <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">최종 납부액</span><span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span></div>
                         </div>
+                        
                         <div class="mt-8 text-xs text-gray-500 font-medium"><p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p><p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p></div>
                     </div>
                     <div class="receipt-right">
@@ -208,22 +221,29 @@
         function generateSafeId() { return 'item_' + (++rowCounter); }
         function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
 
-        // [New] 과목명에 따른 색상 클래스 반환 함수
         function getSubjectColorClass(name) {
             if (!name) return 'subj-default';
             const n = name.trim();
-            
             if (n.includes('수학')) return 'subj-math';
             if (n.includes('국어')) return 'subj-kor';
             if (n.includes('영어')) return 'subj-eng';
-            
             const sciKeys = ['과학', '화학', '생명', '물리', '지학', '물지'];
             if (sciKeys.some(k => n.includes(k))) return 'subj-sci';
-            
             const socKeys = ['사회', '사탐', '사문', '한국사', '세계사', '지리', '한지', '세지', '윤리', '윤사', '역사'];
             if (socKeys.some(k => n.includes(k))) return 'subj-soc';
-            
             return 'subj-default';
+        }
+
+        // [New] 시간 파싱 함수 (오후 5:00 -> 17:00)
+        function parseAccessTime(tStr) {
+            if(!tStr) return '';
+            // "오후 5:00:00" or "오전 10:00:00" format expected
+            const isPM = tStr.includes('오후');
+            let [h, m] = tStr.replace('오전', '').replace('오후', '').trim().split(':');
+            h = parseInt(h);
+            if(isPM && h !== 12) h += 12;
+            if(!isPM && h === 12) h = 0; // 00:00
+            return `${h}:${m}`;
         }
 
         function switchTab(tab) {
@@ -241,9 +261,10 @@
             const isHistory = (tab === 'history');
             document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
-            document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
-            document.getElementById('infoBox').classList.toggle('hidden', isHistory);
-            document.getElementById('thAmount').innerText = isHistory ? '시간' : '금액';
+            
+            // 이력 확인 모드여도 합계는 보이게 수정
+            // document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory); 
+            
             document.getElementById('receiptSubTitle').innerText = isHistory ? '수강 이력 확인서' : '수강료 안내서';
             document.getElementById('dateBadge').className = isHistory ? 'bg-green-600 text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center' : 'bg-[#004094] text-white px-6 h-10 rounded-full font-bold shadow-md flex items-center justify-center';
             const capArea = document.getElementById('captureArea');
@@ -260,10 +281,29 @@
             const year = parseInt(document.getElementById('targetYear').value);
             lines.forEach(line => {
                 const cols = line.split('\t');
-                if (cols.length < 3) return; 
+                if (cols.length < 10) return; // 최소 컬럼 수 확인
+                
+                // 1:일자, 2:반명, 5:TR(강사), 6:시작, 7:종료, 8:시간, 10:금액
                 const dateMatch = cols[1].match(/(\d+)\/(\d+)/);
                 if (!dateMatch) return;
-                historyData.push({ year, month: parseInt(dateMatch[1]), day: parseInt(dateMatch[2]), subject: cols[2], duration: cols[8] });
+                
+                const month = parseInt(dateMatch[1]);
+                const day = parseInt(dateMatch[2]);
+                const subjRaw = cols[2];
+                const teacher = cols[5];
+                const startTime = parseAccessTime(cols[6]);
+                const endTime = parseAccessTime(cols[7]);
+                const hours = parseFloat(cols[8]);
+                const amount = parseInt(cols[10].replace(/,/g, '')) || 0;
+
+                historyData.push({ 
+                    year, month, day, 
+                    subject: subjRaw, 
+                    teacher: teacher,
+                    timeRange: `${startTime}~${endTime}`,
+                    hours: hours,
+                    amount: amount
+                });
             });
             if (historyData.length > 0) {
                 document.getElementById('targetMonth').value = historyData[0].month;
@@ -300,19 +340,60 @@
             document.getElementById('dispName').innerText = document.getElementById('studentName').value || '학생명';
             document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
             const tbody = document.getElementById('receiptBody'); tbody.innerHTML = '';
+            
+            let totalAmount = 0;
+            // 과목명 기준으로 그룹화 (이름-타입-강사)
             const subjectMap = {}; 
+            
             historyData.forEach(d => {
                 if(d.month !== month) return;
-                if(!subjectMap[d.subject]) subjectMap[d.subject] = { count: 0, totalTime: 0 };
-                subjectMap[d.subject].count++;
-                subjectMap[d.subject].totalTime += parseFloat(d.duration || 0);
+                const key = d.subject; // 반명 전체를 키로 사용
+                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, totalAmount: 0 };
+                subjectMap[key].count++;
+                subjectMap[key].totalTime += d.hours;
+                subjectMap[key].totalAmount += d.amount;
+                totalAmount += d.amount;
             });
+
             for (const [subjName, data] of Object.entries(subjectMap)) {
+                // 반명 파싱 (예: 국어-개별(안준성)-1h) -> 국어, 개별, 안준성
                 const parts = subjName.split('-');
-                let badges = parts.length > 1 ? `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>` : '';
-                tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 출석</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.totalTime}시간</td></tr>`;
+                const mainName = parts[0];
+                let badges = '';
+                // TR(강사) 정보가 있으면 배지 추가, 없으면 반명에서 파싱 시도
+                if(parts.length > 1) {
+                     // 간단히 두번째 항목을 배지로
+                     badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-dashed border-gray-200">
+                        <td class="py-3 pl-1 pr-2 align-top">
+                            <div class="flex items-center flex-wrap gap-y-1">
+                                <span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>
+                                ${badges}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 (${data.totalTime}시간)</div>
+                        </td>
+                        <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
+                            ${data.totalAmount.toLocaleString()}원
+                        </td>
+                    </tr>`;
             }
-            renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({day: d.day, name: d.subject.split('-')[0] + `(${d.duration}h)`, type: 'history', rawName: d.subject})));
+
+            // 합계 표시
+            document.getElementById('dispSubtotal').innerText = totalAmount.toLocaleString() + '원';
+            document.getElementById('dispAdj').innerText = '0원'; // 이력 모드에선 이월금 제외
+            document.getElementById('dispTotal').innerText = totalAmount.toLocaleString() + '원';
+
+            // 달력 렌더링
+            renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({
+                day: d.day, 
+                // 표시 내용: 과목명(강사) 시간
+                name: `${d.subject.split('-')[0]}(${d.teacher}) ${d.timeRange}`, 
+                type: 'history', 
+                rawName: d.subject
+            })));
         }
 
         function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
@@ -423,7 +504,7 @@
                 const dayEvents = events.filter(e => e.day === i);
                 let html = `<div class="receipt-cal-cell"><div class="rc-date ${dayEvents.length > 0 ? 'rc-active-date' : ''}">${i}</div>`;
                 dayEvents.forEach(e => {
-                    const colorClass = getSubjectColorClass(e.rawName || e.name); // 색상 결정
+                    const colorClass = getSubjectColorClass(e.rawName || e.name); 
                     html += `<span class="rc-subject shadow-sm text-optical-center ${colorClass}">${e.name}</span>`;
                 });
                 html += `</div>`;
@@ -449,59 +530,77 @@
 
             const tbody = document.getElementById('receiptBody'); tbody.innerHTML = '';
             let subtotal = 0;
-            const allEvents = [];
+            const formatDetails = (text) => text.replace(/(\d+(\.\d+)?)h/gi, '$1시간');
+            
+            const createSubjectHTML = (rawSubject) => {
+                const parts = rawSubject.split('-');
+                let badgesHTML = ''; let detailsText = '';
+                for(let i=1; i<parts.length; i++) {
+                    const part = parts[i].trim();
+                    if(part.toUpperCase().endsWith('T')) badgesHTML += `<span class="badge-base teacher-badge text-optical-center">${part}</span>`;
+                    else if(part.toLowerCase().endsWith('h')) detailsText += (detailsText ? ' / ' : '') + formatDetails(part);
+                    else badgesHTML += `<span class="badge-base type-badge text-optical-center">${part}</span>`;
+                }
+                return { display: `<div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badgesHTML}${detailsText ? `<span class="text-base text-[#004094] font-bold ml-1 pt-0.5">${detailsText}</span>` : ''}</div>` };
+            };
 
-            try {
-                let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
-                document.querySelectorAll(selector).forEach(row => {
-                    const rawName = row.querySelector('.sub-name').value;
-                    const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
-                    let count = parseFloat(row.querySelector('.sub-count').value) || 0;
-                    let rowTotal = 0; let detailStr = '';
+            let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
+            document.querySelectorAll(selector).forEach(row => {
+                const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
+                let count = parseFloat(row.querySelector('.sub-count').value) || 0;
+                let rowTotal = 0; let detailStr = '';
 
-                    if(currentTab === 'manual') {
-                        const time = parseFloat(row.querySelector('.sub-time').value) || 0;
-                        rowTotal = time * count * rate;
-                        detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
-                    } else {
-                        rowTotal = count * rate;
-                        detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
-                    }
+                if(currentTab === 'manual') {
+                    const time = parseFloat(row.querySelector('.sub-time').value) || 0;
+                    rowTotal = time * count * rate;
+                    detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
+                } else {
+                    rowTotal = count * rate;
+                    detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
+                }
 
-                    if (rowTotal > 0 || count > 0) {
-                        subtotal += rowTotal;
-                        const parts = rawName.split('-');
-                        let badges = '';
-                        for(let i=1; i<parts.length; i++) {
-                            const p = parts[i].trim();
-                            if(p.toUpperCase().endsWith('T')) badges += `<span class="badge-base teacher-badge text-optical-center">${p}</span>`;
-                            else if(!p.toLowerCase().endsWith('h')) badges += `<span class="badge-base type-badge text-optical-center">${p}</span>`;
-                        }
-                        tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
+                if (rowTotal > 0 || count > 0) {
+                    subtotal += rowTotal;
+                    const parts = rawName.split('-');
+                    let badges = '';
+                    for(let i=1; i<parts.length; i++) {
+                        const p = parts[i].trim();
+                        if(p.toUpperCase().endsWith('T')) badges += `<span class="badge-base teacher-badge text-optical-center">${p}</span>`;
+                        else if(!p.toLowerCase().endsWith('h')) badges += `<span class="badge-base type-badge text-optical-center">${p}</span>`;
                     }
-                    
-                    if(currentTab === 'auto') {
-                        const rowId = row.id.replace('arow-', '');
-                        const checkedBoxes = row.querySelectorAll('.day-chk:checked');
-                        const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-                        const date = new Date(year, month - 1, 1);
-                        while (date.getMonth() === month - 1) {
-                            if (activeDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) {
-                                allEvents.push({day: date.getDate(), name: rawName.split('-')[0], rawName: rawName});
-                            }
-                            date.setDate(date.getDate() + 1);
-                        }
-                    } else if(currentTab === 'select') {
-                        const rowId = row.id.replace('srow-', '');
-                        if(selectRowDates[rowId]) {
-                            selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0], rawName: rawName}));
-                        }
-                    }
-                });
-            } catch (e) { console.error("Row Calc Error", e); }
+                    tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
+                }
+            });
 
             document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
+            
+            // 이력 모드일 때는 totalAmount 계산이 따로 있으므로 여기서는 계산기 모드일 때만
             document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원';
+            
+            // 달력 데이터 수집 및 렌더링
+            const allEvents = [];
+            if(currentTab === 'auto') {
+                const checkedBoxes = document.querySelectorAll('#autoList .day-chk:checked');
+                // ... 기존 로직 ... (간략화)
+                document.querySelectorAll('#autoList .auto-row').forEach(row => {
+                    const rawName = row.querySelector('.sub-name').value;
+                    const cBoxes = row.querySelectorAll('.day-chk:checked');
+                    const aDays = Array.from(cBoxes).map(c => parseInt(c.value));
+                    const d = new Date(year, month-1, 1);
+                    while(d.getMonth() === month-1) {
+                        if(aDays.includes(d.getDay()) && !excludedDates.has(d.getDate())) {
+                            allEvents.push({day: d.getDate(), name: rawName.split('-')[0], rawName: rawName});
+                        }
+                        d.setDate(d.getDate()+1);
+                    }
+                });
+            } else if(currentTab === 'select') {
+                for(const [rid, set] of Object.entries(selectRowDates)) {
+                    const row = document.getElementById(`srow-${rid}`);
+                    const name = row ? row.querySelector('.sub-name').value : '과목';
+                    set.forEach(d => allEvents.push({day: d, name: name.split('-')[0], rawName: name}));
+                }
+            }
             renderCommonReceiptCalendar(allEvents);
         }
 
