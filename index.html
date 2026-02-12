@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V39</title>
+    <title>에스에듀 반포관 수강료 계산기 V40</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -94,7 +94,7 @@
                     </div>
                     <div class="flex gap-3">
                         <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetYear" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
-                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">월</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
+                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
                     </div>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-100">
@@ -393,7 +393,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             return ''; 
         }
 
-        // [핵심] 납부/차액 그리드 시스템 (V39.0: 요약행 차단, 이월금 양수 처리)
+        // [핵심] 납부/차액 그리드 시스템 (V40.0: 강력한 숫자 인식)
         function processPaymentPaste() {
             const raw = document.getElementById('paymentPasteInput').value;
             const lines = raw.split('\n');
@@ -404,38 +404,44 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 if(!line.trim()) return;
                 const cols = line.split('\t');
                 
-                // [수정1] 요약/합계/빈칸 행 강력 차단
-                const firstCol = cols[0] ? cols[0].trim() : '';
-                const secondCol = cols[1] ? cols[1].trim() : '';
-                if(firstCol === '요약' || firstCol === '합계' || firstCol === '*' || firstCol === '' || secondCol === '') return;
+                // 요약행 제거
+                if(line.trim().startsWith('요약') || cols[0].trim() === '요약') return;
 
-                const numbers = cols.map(c => parseInt(c.replace(/,/g, ''))).filter(n => !isNaN(n));
-                const hasNegative = numbers.some(n => n < 0);
+                // [강력한 숫자 추출] 텍스트 내의 모든 숫자 패턴 검색
+                // 예: "  - 1,000,000 " -> -1000000
+                const extractNumbers = (str) => {
+                    const matches = str.match(/-?[\d,]+/g);
+                    if (!matches) return [];
+                    return matches.map(m => parseInt(m.replace(/,/g, ''))).filter(n => !isNaN(n));
+                };
+
+                // 행 전체에서 숫자 추출
+                const allNumbers = extractNumbers(line);
+                const hasNegative = allNumbers.some(n => n < 0);
                 const payKeywords = ['납부', '결제', '카드', '현금'];
                 const isPaymentRow = cols.some(c => payKeywords.some(k => c.includes(k))) || hasNegative;
 
                 let name = '항목 없음', amount = 0, discount = 0, type = 'class';
 
-                // 반명 찾기 (대략적 위치)
+                // 반명 찾기
                 const subjKw = cols.find(c => ['수학','영어','국어','과학','초과금','이월'].some(k => c.includes(k)));
                 
                 if (isPaymentRow) {
-                    // [수정2] '이월'이나 '초과금'이 포함되어 있다면 음수라도 납부가 아님 -> 수업(청구)
                     if (subjKw && (subjKw.includes('이월') || subjKw.includes('초과금'))) {
                          type = 'class';
                          name = subjKw;
-                         amount = Math.abs(Math.max(...numbers.map(Math.abs)) || 0); // 절대값 중 큰 것
+                         amount = Math.abs(Math.max(...allNumbers.map(Math.abs)) || 0);
                     } else {
                         type = 'payment';
                         name = '기납부 확인';
-                        // 음수 절댓값
-                        const neg = numbers.find(n => n < 0);
-                        amount = Math.abs(neg || Math.max(...numbers) || 0);
+                        // 음수 우선, 없으면 가장 큰 수
+                        const neg = allNumbers.find(n => n < 0);
+                        amount = Math.abs(neg || Math.max(...allNumbers) || 0);
                     }
                 } else {
                     type = 'class';
                     name = subjKw || '기타 수업';
-                    amount = Math.max(...numbers) || 0;
+                    amount = Math.max(...allNumbers) || 0;
                 }
 
                 if (amount > 0) {
