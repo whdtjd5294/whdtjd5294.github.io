@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V42</title>
+    <title>에스에듀 반포관 수강료 계산기 V43</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -40,9 +40,10 @@
         .rc-active-date { color: #1f2937; }
         .text-optical-center { display: inline-block; line-height: 1; padding-top: 1px; }
 
-        .badge-base { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px; font-size: 0.8rem; border-radius: 6px; font-weight: 700; margin-left: 6px; vertical-align: middle; line-height: 1; }
+        .badge-base { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.8rem; border-radius: 6px; font-weight: 700; margin-left: 4px; vertical-align: middle; line-height: 1; }
         .type-badge { background-color: #004094; color: white; }
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+        .time-badge { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; } /* [NEW] 시간 배지 */
         .makeup-badge { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
 
         #captureArea { position: relative; overflow: hidden; background-color: white; max-width: 1100px; width: 1100px; }
@@ -268,6 +269,44 @@
             return 'subj-default';
         }
 
+        // [New] 과목명 및 시간 파싱 (V43)
+        function parseSubjectInfo(rawName) {
+            let name = rawName;
+            let timeText = '';
+            
+            // 1. 시간 추출 (맨 뒤에 있는 -3h 등)
+            const timeMatch = name.match(/-(\d+(\.\d+)?)h/i);
+            if(timeMatch) {
+                timeText = `${timeMatch[1]}시간`;
+                name = name.replace(timeMatch[0], ''); // 이름에서 시간 제거
+            }
+
+            // 2. 선생님/유형 분리
+            let teacher = '';
+            let type = '';
+            let mainName = '';
+
+            const parts = name.split('-');
+            mainName = parts[0];
+
+            for (let i=1; i<parts.length; i++) {
+                let part = parts[i].trim();
+                
+                // 괄호 안 이름 추출: "2:1(김서은)"
+                const parenMatch = part.match(/(.*)\(([^)]+)\)$/);
+                if (parenMatch) {
+                    if (parenMatch[1]) type = parenMatch[1]; // 2:1
+                    teacher = parenMatch[2]; // 김서은
+                } else if (part.toUpperCase().endsWith('T')) {
+                    teacher = part;
+                } else {
+                    type = part; // 개별 등
+                }
+            }
+            
+            return { mainName, teacher, type, timeText };
+        }
+
         function parseAccessTime(tStr) {
             if(!tStr) return '';
             const isPM = tStr.includes('오후');
@@ -337,34 +376,10 @@
             else updateDateContext();
         }
 
-        function updateInfoText(totalAmount, adjustment) {
-            if(currentTab === 'history' || currentTab === 'payment') return; 
-
-            const name = document.getElementById('studentName').value || '학생명';
-            const month = document.getElementById('targetMonth').value;
-            const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0';
-            const totalStr = (totalAmount + adjustment).toLocaleString();
-
-            const text = `※전체 재원생 수강료 안내※\n안녕하세요 에스학원입니다.\n수강료 안내 드립니다.\n\n${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.\n이전 달의 이월/초과금은 ${adjStr} 원입니다.\n\n학부모님 연락처로 결제링크 발송드리겠습니다.\n\n납부금액보다 수업 수강료가 적거나 많을 경우\n다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.\n\n**수강료 안내에서 회당란 가격은 시간당 가격이고\n횟수란, 한 달 총 수강 시간입니다.\n\n※ 수업 취소 안내 ※\n수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.\n당일취소는 환불되거나 이월되지 않습니다.\n[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 \n취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.\n양해 부탁드립니다. ]\n[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]\n\n‘결제링크’ 통해 카드 분할 결제 가능합니다.\n그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. \n감사합니다.`;
-            document.getElementById('generatedTextArea').value = text;
-        }
-
-        function copyGeneratedText() {
-            const copyText = document.getElementById("generatedTextArea");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다."));
-        }
-
-        function extractTeacherName(text) {
-            const parenthesisMatch = text.match(/\(([^)]+)\)/);
-            if (parenthesisMatch) return parenthesisMatch[1];
-            const parts = text.split('-');
-            for(let p of parts) {
-                if(p.trim().toUpperCase().endsWith('T')) return p.trim();
-            }
-            return ''; 
-        }
+        // [기존 함수들 그대로 유지]
+        function updateInfoText(totalAmount, adjustment) { if(currentTab === 'history' || currentTab === 'payment') return; const name = document.getElementById('studentName').value || '학생명'; const month = document.getElementById('targetMonth').value; const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0'; const totalStr = (totalAmount + adjustment).toLocaleString(); const text = `※전체 재원생 수강료 안내※\n안녕하세요 에스학원입니다.\n수강료 안내 드립니다.\n\n${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.\n이전 달의 이월/초과금은 ${adjStr} 원입니다.\n\n학부모님 연락처로 결제링크 발송드리겠습니다.\n\n납부금액보다 수업 수강료가 적거나 많을 경우\n다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.\n\n**수강료 안내에서 회당란 가격은 시간당 가격이고\n횟수란, 한 달 총 수강 시간입니다.\n\n※ 수업 취소 안내 ※\n수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.\n당일취소는 환불되거나 이월되지 않습니다.\n[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 \n취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.\n양해 부탁드립니다. ]\n[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]\n\n‘결제링크’ 통해 카드 분할 결제 가능합니다.\n그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. \n감사합니다.`; document.getElementById('generatedTextArea').value = text; }
+        function copyGeneratedText() { const copyText = document.getElementById("generatedTextArea"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다.")); }
+        function extractTeacherName(text) { const parenthesisMatch = text.match(/\(([^)]+)\)/); if (parenthesisMatch) return parenthesisMatch[1]; const parts = text.split('-'); for(let p of parts) if(p.trim().toUpperCase().endsWith('T')) return p.trim(); return ''; }
 
         // [핵심] 납부/차액 그리드 시스템 (V40.0: 강력한 숫자 인식)
         function processPaymentPaste() {
@@ -410,8 +425,6 @@
                     type = 'class';
                     name = subjKw || '기타 수업';
                     amount = Math.max(...allNumbers) || 0;
-                    
-                    // 시간 추출 (예: 3시간, 3h, 3H) - 컬럼에서 찾기
                     const timeCol = cols.find(c => c.match(/[\d.]+(시간|h|H)/));
                     if (timeCol) {
                         hours = parseFloat(timeCol.replace(/[^0-9.]/g, ''));
@@ -440,6 +453,7 @@
             renderPaymentReceipt(); 
         }
 
+        // [수정] Grid 기반 영수증 렌더링 (V43)
         function renderPaymentReceipt() {
             const gridRows = document.querySelectorAll('#paymentGridBody tr');
             const tbody = document.getElementById('receiptBody');
@@ -460,51 +474,26 @@
                     totalTuition += originalPrice;
                     totalDiscount += discount;
 
-                    // [수정] 괄호 안 이름 추출 및 유형 분리
-                    let mainName = name;
+                    // V43: 스마트 파싱 적용
+                    const info = parseSubjectInfo(name);
                     let badges = '';
+                    if (info.type) badges += `<span class="badge-base type-badge text-optical-center">${info.type}</span>`;
+                    if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`;
                     
-                    // 1. 강사명 추출 (괄호 안)
-                    const teacher = extractTeacherName(name);
-                    if (teacher) {
-                        badges += `<span class="badge-base teacher-badge text-optical-center">${teacher}</span>`;
-                        // 이름에서 선생님 이름 부분 제거 (선택 사항, 여기선 유지)
-                    }
-
-                    // 2. 메인 과목명 (하이픈 앞부분)
-                    if (name.includes('-')) {
-                        const parts = name.split('-');
-                        mainName = parts[0];
-                        // 나머지 부분 처리 (예: 개별, 1:1 등)
-                        const subPart = parts[1] ? parts[1].replace(/\(.*\)/, '') : ''; // 괄호 제거
-                        if(subPart) {
-                             // badges += `<span class="badge-base type-badge text-optical-center">${subPart}</span>`;
-                        }
-                    }
-
+                    // 시간 표시 (맨 앞)
+                    const timeDisplay = info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : '';
+                    
                     let discountText = discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${discount.toLocaleString()}</div>` : '';
-                    
-                    // [수정] 시간 표시 (있으면 맨 앞에)
-                    let timeText = '';
-                    // 1. 데이터에서 가져온 시간 (hours)
-                    if (hours > 0) timeText = `${hours}시간 / `;
-                    // 2. 이름에 포함된 시간 (3h)
-                    else {
-                        const timeMatch = name.match(/-(\d+(\.\d+)?)h/i);
-                        if(timeMatch) timeText = `${timeMatch[1]}시간 / `;
-                    }
 
                     tbody.innerHTML += `
                         <tr class="border-b border-dashed border-gray-200">
                             <td class="py-3 pl-1 pr-2 align-top">
-                                <div class="flex items-center flex-wrap gap-y-1">
-                                    <span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>
+                                <div class="flex items-center flex-wrap gap-y-1 mb-1">
+                                    <span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>
+                                    ${timeDisplay}
                                     ${badges}
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1 pl-0.5">
-                                    <span class="text-[#004094] font-bold">${timeText}</span>
-                                    ${name}
-                                </div>
+                                <div class="text-sm text-gray-500 pl-0.5">${name}</div>
                                 ${discountText}
                             </td>
                             <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
@@ -545,7 +534,7 @@
             document.getElementById('priceSummaryArea').classList.remove('hidden');
         }
 
-        // [수정] updateAll (계산기 모드) - 괄호 강사명 및 시간 표시 강화
+        // [수정] updateAll (계산기 모드) - V43 스마트 파싱 적용
         function updateAll() {
             if (currentTab === 'history' || currentTab === 'payment') return; 
             const name = document.getElementById('studentName').value || '학생명';
@@ -574,16 +563,13 @@
                     let count = parseFloat(row.querySelector('.sub-count').value) || 0;
                     let rowTotal = 0; let detailStr = '';
 
-                    // 시간(h) 추출
-                    let timeText = '';
-                    const timeMatch = rawName.match(/-(\d+(\.\d+)?)h/i);
-                    if(timeMatch) timeText = `${timeMatch[1]}시간`;
-
+                    // V43: 수동 입력 시간 처리
+                    let manualTime = '';
                     if(currentTab === 'manual') {
                         const time = parseFloat(row.querySelector('.sub-time').value) || 0;
                         rowTotal = time * count * rate;
                         detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
-                        timeText = `${time}시간`; // 수동 입력 시간 우선
+                        manualTime = `${time}시간`;
                     } else {
                         rowTotal = count * rate;
                         detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
@@ -591,35 +577,28 @@
 
                     if (rowTotal > 0 || count > 0) {
                         subtotal += rowTotal;
-                        const parts = rawName.split('-');
-                        const mainName = parts[0];
+                        
+                        // V43: 스마트 파싱 호출
+                        const info = parseSubjectInfo(rawName);
+                        // 수동 시간이 있으면 덮어쓰기
+                        if (manualTime) info.timeText = manualTime;
+
                         let badges = '';
+                        if (info.type) badges += `<span class="badge-base type-badge text-optical-center">${info.type}</span>`;
+                        if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`;
                         
-                        // 1. T로 끝나는 강사
-                        for(let i=1; i<parts.length; i++) {
-                            const p = parts[i].trim();
-                            if(p.toUpperCase().endsWith('T')) badges += `<span class="badge-base teacher-badge text-optical-center">${p}</span>`;
-                            else if(!p.toLowerCase().endsWith('h')) badges += `<span class="badge-base type-badge text-optical-center">${p}</span>`;
-                        }
-                        
-                        // 2. 괄호 안 강사 (중복 방지)
-                        const parenName = extractTeacherName(rawName);
-                        if(parenName && !badges.includes(parenName)) {
-                             badges += `<span class="badge-base teacher-badge text-optical-center">${parenName}</span>`;
-                        }
-                        
-                        // 시간 텍스트 결합
-                        const timeDisplay = timeText ? `<span class="text-[#004094] font-bold mr-1">${timeText} /</span>` : '';
+                        const timeDisplay = info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : '';
 
                         tbody.innerHTML += `
                             <tr class="border-b border-dashed border-gray-200 last:border-0">
                                 <td class="py-3 pl-1 pr-2 align-top no-wrap-cell">
-                                    <div class="flex items-center flex-wrap gap-y-1">
-                                        <span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>
+                                    <div class="flex items-center flex-wrap gap-y-1 mb-1">
+                                        <span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>
+                                        ${timeDisplay}
                                         ${badges}
                                     </div>
-                                    <div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">
-                                        ${timeDisplay}${detailStr}
+                                    <div class="text-sm text-gray-500 pl-0.5">
+                                        ${detailStr}
                                     </div>
                                 </td>
                                 <td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">
