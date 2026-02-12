@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V31</title>
+    <title>에스에듀 반포관 수강료 계산기 V32</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -16,7 +16,6 @@
         .info-list li { margin-bottom: 0.3rem; position: relative; padding-left: 0.8rem; line-height: 1.5; font-size: 0.9rem; }
         .info-list li::before { content: '•'; position: absolute; left: 0; color: #004094; font-weight: bold; top: 0; }
 
-        /* 달력 스타일 */
         .calendar-grid div { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; margin: 2px auto; border-radius: 50%; transition: all 0.2s; cursor: pointer; }
         .sun { color: #ef4444; } .sat { color: #3b82f6; }
         
@@ -25,13 +24,12 @@
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #dcfce7 !important; color: #166534 !important; font-weight: bold; border: 1px solid #86efac; }
 
-        /* 영수증 내부 */
         .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
         .receipt-cal-cell { background-color: white; min-height: 80px; height: auto; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         .rc-date { font-size: 0.8rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; width: 100%; text-align: center; }
         .rc-subject { font-size: 0.75rem; width: 96%; text-align: center; padding: 4px 2px; border-radius: 4px; margin-bottom: 2px; white-space: normal; word-break: keep-all; font-weight: 700; line-height: 1.2; display: block; }
         
-        /* 과목 색상 */
+        /* 색상 테마 */
         .subj-default { background-color: #eff6ff; color: #004094; }
         .subj-math { background-color: #dbeafe; color: #1e40af; }
         .subj-kor { background-color: #dcfce7; color: #166534; }
@@ -52,13 +50,21 @@
         .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
         
         .receipt-content { position: relative; z-index: 10; display: flex; width: 100%; transition: all 0.3s ease; }
+        
+        /* 레이아웃 모드 */
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
+
         .layout-history { gap: 2rem; flex-direction: column; }
         .layout-history .receipt-left { order: 2; width: 100%; }
         .layout-history .receipt-right { order: 1; width: 100%; }
         
+        /* 납부 모드 (표만 넓게) */
+        .layout-payment { flex-direction: column; gap: 2rem; }
+        .layout-payment .receipt-left { width: 100%; }
+        .layout-payment .receipt-right { display: none; } /* 달력 숨김 */
+
         .th-nowrap { white-space: nowrap; }
         .custom-scroll::-webkit-scrollbar { width: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
@@ -91,6 +97,7 @@
                         <span id="calBadge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">대기</span>
                     </div>
                     <div id="historyGuide" class="hidden text-[10px] text-green-600 bg-green-50 p-2 rounded mb-2 border border-green-100 text-center">✅ Access 데이터 기반 <b>수강 이력</b> 표시 중</div>
+                    <div id="paymentGuide" class="hidden text-[10px] text-purple-600 bg-purple-50 p-2 rounded mb-2 border border-purple-100 text-center">💰 Access 데이터 기반 <b>납부/차액</b> 계산 중</div>
                     <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center">👇 아래 목록에서 <b>과목을 클릭</b>한 뒤 날짜를 선택하세요.</div>
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
@@ -111,10 +118,11 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="flex border-b border-gray-200">
-                    <button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400">요일고정</button>
-                    <button onclick="switchTab('select')" id="btn-select" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400">선택형</button>
-                    <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400">변동형</button>
-                    <button onclick="switchTab('history')" id="btn-history" class="flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-green-600 hover:text-green-700 bg-green-50">이력확인</button>
+                    <button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400">요일고정</button>
+                    <button onclick="switchTab('select')" id="btn-select" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400">선택형</button>
+                    <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400">변동형</button>
+                    <button onclick="switchTab('history')" id="btn-history" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-green-600 hover:text-green-700 bg-green-50">이력확인</button>
+                    <button onclick="switchTab('payment')" id="btn-payment" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-purple-600 hover:text-purple-700 bg-purple-50">납부/차액</button>
                 </div>
                 <div class="p-4 bg-gray-50 h-[450px] overflow-y-auto custom-scroll">
                     <div id="tab-auto" class="hidden">
@@ -131,9 +139,16 @@
                     </div>
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
-                            <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 데이터 붙여넣기</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access 데이터..."></textarea>
+                            <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 이력 데이터</h4>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요.&#13;&#10;[연결|일자|반명|관|출결|TR|시작|종료|시간|시간당|금액]"></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
+                        </div>
+                    </div>
+                    <div id="tab-payment" class="hidden">
+                        <div class="bg-white p-3 rounded border border-purple-200 mb-3">
+                            <h4 class="text-xs font-bold text-purple-700 mb-2">💰 Access 납부/수업 데이터</h4>
+                            <textarea id="paymentPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요.&#13;&#10;(납부금액, 할인, 수강료가 포함된 전체 데이터)"></textarea>
+                            <button onclick="processPaymentPaste()" class="w-full mt-2 py-2 bg-purple-600 text-white text-xs font-bold rounded hover:bg-purple-700">납부 및 차액 계산</button>
                         </div>
                     </div>
                 </div>
@@ -171,7 +186,10 @@
                                 <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료 소계</span><span id="dispSubtotal" class="text-gray-800">0</span></div>
                                 <div class="flex justify-between text-red-500 font-bold text-lg" id="dispAdjRow"><span>이월/초과금 조정</span><span id="dispAdj">0</span></div>
                             </div>
-                            <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">최종 납부액</span><span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span></div>
+                            <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
+                                <span id="labelTotal" class="text-xl font-black text-gray-800">최종 납부액</span>
+                                <span class="text-4xl font-black text-[#004094]" id="dispTotal">0원</span>
+                            </div>
                         </div>
                         <div class="mt-6 text-xs text-gray-500 font-medium text-center"><p class="mb-1"><b>문의사항 :</b> 010-4232-7428</p><p class="text-gray-400">* 본 안내서는 에스에듀 반포관 공식 문서입니다.</p></div>
                     </div>
@@ -212,6 +230,7 @@
         let activeSelectRowId = null;  
         const selectRowDates = {};     
         let historyData = [];
+        let paymentData = []; // [New] 납부 데이터
         let rowCounter = 0;
 
         window.onload = function() {
@@ -247,58 +266,70 @@
             return `${h}:${m}`;
         }
 
-        // [중요] 탭 전환 시 상태 강제 초기화
         function switchTab(tab) {
             currentTab = tab;
-            
-            // 1. 탭 버튼 스타일
-            ['auto', 'select', 'manual', 'history'].forEach(t => {
+            ['auto', 'select', 'manual', 'history', 'payment'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`btn-${t}`);
                 if(t === tab) {
-                    let colorClass = t === 'history' ? 'bg-green-50 text-green-700 border-green-600' : 'bg-[#004094]/5 text-[#004094] border-[#004094]';
-                    btn.className = `flex-1 py-3 text-xs font-bold text-center border-b-2 ${colorClass}`;
+                    let colorClass = 'bg-[#004094]/5 text-[#004094] border-[#004094]';
+                    if (t === 'history') colorClass = 'bg-green-50 text-green-700 border-green-600';
+                    if (t === 'payment') colorClass = 'bg-purple-50 text-purple-700 border-purple-600';
+                    btn.className = `flex-1 py-3 text-[11px] font-bold text-center border-b-2 ${colorClass}`;
                 } else {
-                    btn.className = "flex-1 py-3 text-xs font-bold text-center border-b-2 border-transparent text-gray-400 hover:text-gray-600";
+                    btn.className = "flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400 hover:text-gray-600";
                 }
             });
 
-            // 2. 이력/계산기 모드 분기
+            // 모드별 UI 제어
             const isHistory = (tab === 'history');
-            document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory);
-            document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory);
-            document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory); // 이력모드에선 숨김
+            const isPayment = (tab === 'payment');
             
-            // 3. 레이아웃 및 텍스트 리셋
+            document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory || isPayment);
+            document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory || isPayment);
+            document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
+            
+            // 영수증 설정
             const contentDiv = document.getElementById('receiptContent');
+            contentDiv.className = "receipt-content"; // Reset
+            if (isHistory) contentDiv.classList.add('layout-history');
+            else if (isPayment) contentDiv.classList.add('layout-payment');
+            else contentDiv.classList.add('layout-default');
+
+            // 텍스트 & 스타일
+            let badgeColor = 'bg-[#004094]';
+            let borderColor = 'border-[#004094]';
+            let subTitle = '수강료 안내서';
+            let thAmountText = '금액';
+            let totalLabel = '최종 납부액';
+
             if (isHistory) {
-                contentDiv.classList.remove('layout-default');
-                contentDiv.classList.add('layout-history');
-                document.getElementById('thAmount').innerText = '시간';
-                document.getElementById('receiptSubTitle').innerText = '수강 이력 확인서';
-                document.getElementById('dateBadge').className = 'bg-green-600 text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center';
-                document.getElementById('captureArea').className = "w-full receipt-shadow border-t-[10px] border-green-600 rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300";
-                // 텍스트 초기화
-                document.getElementById('generatedTextArea').value = "이력 확인 모드에서는 수강료 안내 문자가 생성되지 않습니다.";
-            } else {
-                contentDiv.classList.remove('layout-history');
-                contentDiv.classList.add('layout-default');
-                document.getElementById('thAmount').innerText = '금액';
-                document.getElementById('receiptSubTitle').innerText = '수강료 안내서';
-                document.getElementById('dateBadge').className = 'bg-[#004094] text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center';
-                document.getElementById('captureArea').className = "w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300";
-                // 중요: 계산기 모드로 돌아오면 즉시 재계산
-                updateAll(); 
+                badgeColor = 'bg-green-600'; borderColor = 'border-green-600';
+                subTitle = '수강 이력 확인서'; thAmountText = '시간';
+            } else if (isPayment) {
+                badgeColor = 'bg-purple-600'; borderColor = 'border-purple-600';
+                subTitle = '납부 및 차액 안내서'; thAmountText = '금액';
+                totalLabel = '미납/차액 합계';
             }
 
-            document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
+            document.getElementById('thAmount').innerText = thAmountText;
+            document.getElementById('receiptSubTitle').innerText = subTitle;
+            document.getElementById('labelTotal').innerText = totalLabel;
+            document.getElementById('dateBadge').className = `${badgeColor} text-white px-5 h-9 rounded-full font-bold shadow-md flex items-center justify-center`;
             
+            const capArea = document.getElementById('captureArea');
+            capArea.className = `w-full receipt-shadow border-t-[10px] ${borderColor} rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300`;
+
+            document.getElementById('selectGuide').classList.toggle('hidden', tab !== 'select');
+            document.getElementById('generatedTextArea').value = (isHistory || isPayment) ? "이 모드에서는 자동 생성 문자가 지원되지 않습니다." : "";
+
             if (isHistory) updateHistoryView(); 
+            else if (isPayment) updatePaymentView();
             else updateDateContext();
         }
 
         function updateInfoText(totalAmount, adjustment) {
-            if(currentTab === 'history') return; 
+            if(currentTab === 'history' || currentTab === 'payment') return; 
 
             const name = document.getElementById('studentName').value || '학생명';
             const month = document.getElementById('targetMonth').value;
@@ -331,7 +362,6 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
 ‘결제링크’ 통해 카드 분할 결제 가능합니다.
 그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. 
 감사합니다.`;
-
             document.getElementById('generatedTextArea').value = text;
         }
 
@@ -342,6 +372,21 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다."));
         }
 
+        // --- 이력/납부 파싱 공통 로직 ---
+        function extractTeacherName(text) {
+            // 1. 괄호 안 이름 추출: 개별(홍길동) -> 홍길동
+            const parenthesisMatch = text.match(/\(([^)]+)\)/);
+            if (parenthesisMatch) return parenthesisMatch[1];
+            
+            // 2. T로 끝나는 이름: 홍길동T -> 홍길동T
+            const parts = text.split('-');
+            for(let p of parts) {
+                if(p.trim().toUpperCase().endsWith('T')) return p.trim();
+            }
+            return ''; // 없으면 빈칸
+        }
+
+        // --- 이력 확인 로직 ---
         function processHistoryPaste() {
             const raw = document.getElementById('historyPasteInput').value;
             const lines = raw.split('\n');
@@ -356,7 +401,10 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 const day = parseInt(dateMatch[2]);
                 const subjRaw = cols[2];
                 const attend = cols[4]; 
-                const teacher = cols[5];
+                let teacher = cols[5];
+                // TR이 없으면 반명에서 추출 시도
+                if(!teacher || teacher.trim() === '') teacher = extractTeacherName(subjRaw);
+
                 const start = parseAccessTime(cols[6]);
                 const end = parseAccessTime(cols[7]);
                 const hours = parseFloat(cols[8]);
@@ -407,7 +455,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             historyData.forEach(d => {
                 if(d.month !== month) return;
                 const key = d.subject; 
-                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, totalAmount: 0, isMakeup: d.isMakeup };
+                if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, totalAmount: 0, isMakeup: d.isMakeup, teacher: d.teacher };
                 subjectMap[key].count++;
                 subjectMap[key].totalTime += d.hours;
                 subjectMap[key].totalAmount += d.amount;
@@ -418,7 +466,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 const parts = subjName.split('-');
                 const mainName = parts[0];
                 let badges = '';
-                if(parts.length > 1) badges = `<span class="badge-base teacher-badge text-optical-center">${parts[1]}</span>`;
+                if (data.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${data.teacher}</span>`;
                 if(data.isMakeup) badges += `<span class="badge-base makeup-badge text-optical-center">보강/변경</span>`;
 
                 tbody.innerHTML += `
@@ -436,9 +484,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                     </tr>`;
             }
 
-            // 이력 모드는 합계 영역 숨겨져 있음(CSS) -> 보여주고 싶으면 hidden 토글 제거 필요
-            // 여기서는 텍스트만 업데이트
-            
+            document.getElementById('dispTotal').innerText = totalAmount.toLocaleString() + '원';
             renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({
                 day: d.day, 
                 name: `${d.isMakeup ? '[보강]' : ''}${d.subject.split('-')[0]} ${d.timeRange}`, 
@@ -448,6 +494,133 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             })));
         }
 
+        // --- [NEW] 납부/차액 처리 로직 ---
+        function processPaymentPaste() {
+            const raw = document.getElementById('paymentPasteInput').value;
+            const lines = raw.split('\n');
+            paymentData = []; // { type: 'class' | 'payment', name: '', amount: 0, discount: 0, teacher: '' }
+            
+            // 헤더 인덱스 찾기 (유동적일 수 있으므로)
+            // 하지만 제공된 형식이 탭 분리이므로 순서를 가정하거나 키워드로 식별
+            // 순서: 연결(0), 납입기한(1), 이름(2), 반명/항목(3-mixed) ... 금액 등
+            // 엑세스 복사 특성상 데이터가 밀릴 수 있음. 키워드 검색 방식 사용
+            
+            lines.forEach(line => {
+                if(line.trim() === '') return;
+                const cols = line.split('\t');
+                
+                // 데이터 식별 로직
+                // 1. 수업 행 (반명에 '수학', '영어' 등이 있음)
+                // 2. 납부 행 (항목이나 반명에 '납부금액'이 있음)
+                
+                let type = 'unknown';
+                let name = '';
+                let teacher = '';
+                let amount = 0;
+                let discount = 0;
+
+                // 칼럼 인덱스 추정 (제공된 텍스트 기반)
+                // 수업: [2]반명, [3]TR, [9]수강료, [10]금액, [13]할인
+                // 납부: [2]납부금액/현장결제, [10]금액(음수)
+                
+                // 간단 파서: '반명' 열 찾기 (보통 3번째나 4번째)
+                const subjCol = cols.find(c => c.includes('수학') || c.includes('영어') || c.includes('국어') || c.includes('과학') || c.includes('사회'));
+                const paymentCol = cols.find(c => c.includes('납부') || c.includes('결제'));
+                const amountCol = cols.find(c => c.match(/^-?[\d,]+$/) && Math.abs(parseInt(c.replace(/,/g,''))) > 1000); // 금액처럼 보이는 숫자
+                const discountCol = cols[13]; // 대략적인 위치 (할인)
+
+                if (subjCol && !subjCol.includes('납부')) {
+                    type = 'class';
+                    name = subjCol;
+                    teacher = extractTeacherName(subjCol); // 반명에서 추출
+                    if (!teacher && cols[3]) teacher = cols[3]; // TR 컬럼 확인
+                    if (amountCol) amount = parseInt(amountCol.replace(/,/g, ''));
+                    if (discountCol && discountCol.match(/[\d,]+/)) discount = parseInt(discountCol.replace(/,/g, ''));
+                } 
+                else if (paymentCol || (cols.join('').includes('납부') && amountCol)) {
+                    type = 'payment';
+                    name = '납부/결제';
+                    if (amountCol) amount = Math.abs(parseInt(amountCol.replace(/,/g, ''))); // 납부는 음수지만 양수로 변환
+                }
+
+                if (type !== 'unknown') {
+                    paymentData.push({ type, name, teacher, amount, discount });
+                }
+            });
+
+            updatePaymentView();
+        }
+
+        function updatePaymentView() {
+            if (currentTab !== 'payment') return;
+            const tbody = document.getElementById('receiptBody');
+            tbody.innerHTML = '';
+
+            let totalTuition = 0;
+            let totalPaid = 0;
+            let totalDiscount = 0;
+
+            // 1. 수업 리스트 출력
+            paymentData.filter(d => d.type === 'class').forEach(d => {
+                totalTuition += d.amount;
+                totalDiscount += (d.discount || 0);
+                
+                const parts = d.name.split('-');
+                const mainName = parts[0];
+                let badges = '';
+                if (d.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${d.teacher}</span>`;
+                
+                let discountText = d.discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${d.discount.toLocaleString()}</div>` : '';
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-dashed border-gray-200">
+                        <td class="py-3 pl-1 pr-2 align-top">
+                            <div class="flex items-center flex-wrap gap-y-1">
+                                <span class="font-extrabold text-gray-800 text-lg mr-1">${mainName}</span>
+                                ${badges}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1 pl-0.5">${d.name}</div>
+                            ${discountText}
+                        </td>
+                        <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
+                            ${d.amount.toLocaleString()}원
+                        </td>
+                    </tr>`;
+            });
+
+            // 2. 납부 내역 출력
+            paymentData.filter(d => d.type === 'payment').forEach(d => {
+                totalPaid += d.amount;
+                tbody.innerHTML += `
+                    <tr class="border-b border-dashed border-gray-200 bg-purple-50">
+                        <td class="py-3 pl-1 pr-2 align-top">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-purple-700">기납부 확인</span>
+                            </div>
+                        </td>
+                        <td class="py-3 pr-1 text-right font-mono text-lg font-bold text-purple-700 align-top pt-2.5">
+                            -${d.amount.toLocaleString()}원
+                        </td>
+                    </tr>`;
+            });
+
+            // 3. 요약 섹션 (할인 표시 여부)
+            const summaryHtml = `
+                <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
+                    <div class="flex justify-between text-gray-600 font-bold text-base"><span>수강료 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
+                    ${totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-base"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : ''}
+                    <div class="flex justify-between text-purple-600 font-bold text-base"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <span class="text-xl font-black text-gray-800">미납/차액 합계</span>
+                    <span class="text-4xl font-black ${totalTuition - totalPaid > 0 ? 'text-red-600' : 'text-blue-600'}">${(totalTuition - totalPaid).toLocaleString()}원</span>
+                </div>
+            `;
+            document.getElementById('priceSummaryArea').innerHTML = summaryHtml;
+            document.getElementById('priceSummaryArea').classList.remove('hidden');
+        }
+
+        // --- 공통 기능 ---
         function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
         
         function processSmartPaste() {
@@ -470,11 +643,13 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
 
         function resetAndUpdate() {
             excludedDates.clear(); for (const key in selectRowDates) { selectRowDates[key].clear(); }
-            if(currentTab === 'history') updateHistoryView(); else updateDateContext();
+            if(currentTab === 'history') updateHistoryView(); 
+            else if(currentTab === 'payment') updatePaymentView();
+            else updateDateContext();
         }
 
         function updateDateContext() {
-            if(currentTab === 'history') return;
+            if(currentTab === 'history' || currentTab === 'payment') return;
             renderCalendar(); recalcAllAutoCounts(); updateAll();           
         }
 
@@ -491,7 +666,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
         }
 
         function renderCalendar() {
-            if(currentTab === 'history') return; 
+            if(currentTab === 'history' || currentTab === 'payment') return; 
             const year = parseInt(document.getElementById('targetYear').value);
             const month = parseInt(document.getElementById('targetMonth').value);
             const calDiv = document.getElementById('calendarGrid');
@@ -565,7 +740,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
         }
 
         function updateAll() {
-            if (currentTab === 'history') return; 
+            if (currentTab === 'history' || currentTab === 'payment') return; 
             const name = document.getElementById('studentName').value || '학생명';
             const year = document.getElementById('targetYear').value;
             const month = document.getElementById('targetMonth').value;
@@ -610,6 +785,13 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                             if(p.toUpperCase().endsWith('T')) badges += `<span class="badge-base teacher-badge text-optical-center">${p}</span>`;
                             else if(!p.toLowerCase().endsWith('h')) badges += `<span class="badge-base type-badge text-optical-center">${p}</span>`;
                         }
+                        
+                        // 괄호 이름 추출 (단순 파싱)
+                        const parenName = extractTeacherName(rawName);
+                        if(parenName && !badges.includes(parenName)) {
+                             badges += `<span class="badge-base teacher-badge text-optical-center">${parenName}</span>`;
+                        }
+
                         tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${parts[0]}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 font-medium pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`;
                     }
                     
@@ -632,11 +814,21 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 });
             } catch (e) { console.error("Row Calc Error", e); }
 
-            // [안전장치] NaN 방지
             if (isNaN(subtotal)) subtotal = 0;
-            
             document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
-            document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원';
+            
+            // 기존 요약 섹션 복원 (일반 모드용)
+            const defaultSummary = `
+                <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
+                    <div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료 소계</span><span>${subtotal.toLocaleString()}원</span></div>
+                    <div class="flex justify-between text-red-500 font-bold text-lg" id="dispAdjRow"><span>이월/초과금 조정</span><span class="${adj===0?'text-gray-300':'text-red-500'}">${(adj>0?'+':'')+adj.toLocaleString()}원</span></div>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <span class="text-xl font-black text-gray-800">최종 납부액</span>
+                    <span class="text-4xl font-black text-[#004094]">${(subtotal + adj).toLocaleString()}원</span>
+                </div>`;
+            document.getElementById('priceSummaryArea').innerHTML = defaultSummary;
+
             renderCommonReceiptCalendar(allEvents);
             updateInfoText(subtotal, adj);
         }
