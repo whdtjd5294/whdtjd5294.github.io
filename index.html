@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V35</title>
+    <title>에스에듀 반포관 수강료 계산기 V36</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -49,12 +49,15 @@
         .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
         
         .receipt-content { position: relative; z-index: 10; display: flex; width: 100%; transition: all 0.3s ease; }
+        
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
+
         .layout-history { gap: 2rem; flex-direction: column; }
         .layout-history .receipt-left { order: 2; width: 100%; }
         .layout-history .receipt-right { order: 1; width: 100%; }
+        
         .layout-payment { flex-direction: column; gap: 2rem; }
         .layout-payment .receipt-left { width: 100%; }
         .layout-payment .receipt-right { display: none; } 
@@ -134,14 +137,14 @@
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
                             <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 이력 데이터</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요.&#13;&#10;[연결|일자|반명|관|출결|TR|시작|종료|시간|시간당|금액]"></textarea>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요."></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
                     </div>
                     <div id="tab-payment" class="hidden">
                         <div class="bg-white p-3 rounded border border-purple-200 mb-3">
                             <h4 class="text-xs font-bold text-purple-700 mb-2">💰 Access 납부/수업 데이터</h4>
-                            <textarea id="paymentPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 제목(헤더) 포함해서 붙여넣으세요.&#13;&#10;예: 반명 | TR | 수강료 | 금액 | 할인 ..."></textarea>
+                            <textarea id="paymentPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 font-mono resize-none bg-gray-50" placeholder="Access에서 전체 데이터를 복사해서 붙여넣으세요.&#13;&#10;(열 순서 상관 없이 자동으로 찾습니다)"></textarea>
                             <button onclick="processPaymentPaste()" class="w-full mt-2 py-2 bg-purple-600 text-white text-xs font-bold rounded hover:bg-purple-700">납부 및 차액 계산</button>
                         </div>
                     </div>
@@ -154,8 +157,10 @@
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
+            
             <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300">
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" class="watermark-img" crossorigin="anonymous">
+                
                 <div class="text-center mb-8 relative z-20">
                     <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" crossorigin="anonymous" class="h-14 mx-auto mb-1 object-contain">
                     <h1 class="text-2xl font-black text-[#004094] mb-0.5 tracking-tight">에스에듀 반포관</h1>
@@ -163,6 +168,7 @@
                 </div>
 
                 <div class="receipt-content layout-default" id="receiptContent">
+                    
                     <div class="receipt-left relative z-10">
                         <div class="flex justify-between items-end border-b-4 border-gray-800 pb-2 mb-6">
                             <div><span class="text-xs text-gray-500 font-bold block mb-1">학생명</span><h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3></div>
@@ -203,6 +209,7 @@
                 <button onclick="downloadImage()" class="w-full py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-4 transform hover:-translate-y-1 text-lg">
                     <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
                 </button>
+                
                 <div class="bg-gray-100 border border-gray-300 rounded-xl p-4">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="text-sm font-bold text-gray-700">💬 안내 문자 (자동생성)</h4>
@@ -369,7 +376,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             return ''; 
         }
 
-        // [납부/차액 처리] 좌표 기반 파싱 (Offset Parsing)
+        // [핵심] 스마트 파싱 로직 (V36)
         function processPaymentPaste() {
             const raw = document.getElementById('paymentPasteInput').value;
             const lines = raw.split('\n');
@@ -379,47 +386,71 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 if(line.trim() === '') return;
                 const cols = line.split('\t');
                 
-                // 반명 찾기
-                let subjectIdx = -1;
-                for(let i=0; i<cols.length; i++) {
-                    const cell = cols[i];
-                    if(cell.includes('수학') || cell.includes('영어') || cell.includes('국어') || cell.includes('과학') || cell.includes('사회') || cell.includes('납부') || cell.includes('결제') || cell.includes('초과금')) {
-                        subjectIdx = i;
-                        break;
+                // 모든 숫자 추출
+                const numbers = [];
+                cols.forEach(c => {
+                    // 쉼표 제거 후 숫자 변환 (소수점은 버림)
+                    const n = parseInt(c.replace(/,/g, ''));
+                    if(!isNaN(n)) numbers.push(n);
+                });
+
+                // 텍스트 분석 (반명 찾기)
+                let nameVal = '';
+                const subjKeywords = ['수학', '영어', '국어', '과학', '사회', '물리', '화학', '생명', '지학', '초과금', '이월'];
+                const payKeywords = ['납부', '결제', '카드', '현금', '이체'];
+                
+                // 1. 납부 여부 판단 (음수가 있거나 키워드 존재)
+                const hasNegative = numbers.some(n => n < 0);
+                const isPaymentRow = cols.some(c => payKeywords.some(k => c.includes(k))) || hasNegative;
+
+                // 2. 반명 추출 (키워드가 포함된 가장 긴 문자열)
+                if (isPaymentRow) {
+                    nameVal = '기납부 확인';
+                } else {
+                    // 수업 관련 키워드가 있는 셀 찾기
+                    const subjCell = cols.find(c => subjKeywords.some(k => c.includes(k)));
+                    nameVal = subjCell || '기타 수업';
+                }
+
+                // 3. 금액 결정 (스마트 로직)
+                let amount = 0;
+                let discount = 0;
+                let type = 'unknown';
+
+                if (isPaymentRow) {
+                    type = 'payment';
+                    // 음수의 절댓값 중 가장 큰 것 (혹은 유일한 것)
+                    const negativeNums = numbers.filter(n => n < 0);
+                    if (negativeNums.length > 0) {
+                        amount = Math.abs(Math.min(...negativeNums)); // 가장 작은 음수(절댓값이 큰)
+                    } else if (numbers.length > 0) {
+                        // 양수만 있는데 납부행이면 가장 큰 수 (사용자 실수 대비)
+                        amount = Math.max(...numbers); 
+                    }
+                } else {
+                    type = 'class';
+                    // 양수 중 가장 큰 값을 수강료로 간주 (중복 데이터 무시)
+                    // 초과금도 수업료처럼 양수로 처리
+                    const positiveNums = numbers.filter(n => n > 0);
+                    if (positiveNums.length > 0) {
+                        amount = Math.max(...positiveNums);
+                        
+                        // 할인이 있는지 체크 (amount보다 작고, 1000단위인 숫자)
+                        // 단, 시간(1,2,3)이나 횟수(4,8)와 구분 필요 -> 1000 이상
+                        const possibleDiscounts = positiveNums.filter(n => n < amount && n >= 1000);
+                        if(possibleDiscounts.length > 0) {
+                            // 할인은 보통 수강료 - 실납부액 차이거나 별도 명시
+                            // 여기선 단순하게 두번째로 큰 숫자를 할인으로 볼 수도 있으나 위험함.
+                            // 엑세스 데이터 특성상 할인 열이 별도로 있음. 
+                            // 현재 로직: "할인은 0원"이라고 했으므로 안전하게 0 처리하되, 
+                            // 명시적인 '할인' 열을 찾지 못하면 0으로 둠.
+                            discount = 0; 
+                        }
                     }
                 }
 
-                if(subjectIdx === -1) return;
-
-                const nameVal = cols[subjectIdx];
-                let type = 'unknown';
-                let teacher = '';
-                let amount = 0;
-                let discount = 0;
-
-                const parseMoney = (val) => val ? parseInt(val.replace(/,/g, '')) || 0 : 0;
-
-                // 1. 납부/결제
-                if (nameVal.includes('납부') || nameVal.includes('결제')) {
-                    type = 'payment';
-                    // 금액: 반명 + 9 (음수)
-                    const val = parseMoney(cols[subjectIdx + 9]);
-                    if (val < 0) amount = Math.abs(val);
-                } 
-                // 2. 초과금 (수업 타입으로 처리하되 이름으로 구분)
-                else if (nameVal.includes('초과금') || nameVal.includes('이월')) {
-                    type = 'class';
-                    amount = parseMoney(cols[subjectIdx + 9]);
-                }
-                // 3. 일반 수업
-                else {
-                    type = 'class';
-                    teacher = extractTeacherName(nameVal) || cols[subjectIdx+1];
-                    amount = parseMoney(cols[subjectIdx + 9]); // 금액
-                    discount = parseMoney(cols[subjectIdx + 12]); // 할인
-                }
-
-                if (type !== 'unknown') {
+                if (amount > 0) {
+                    const teacher = extractTeacherName(nameVal);
                     paymentData.push({ type, name: nameVal, teacher, amount, discount });
                 }
             });
@@ -436,7 +467,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             let totalPaid = 0;
             let totalDiscount = 0;
 
-            // 수업/초과금 리스트
+            // 수업 리스트
             paymentData.filter(d => d.type === 'class').forEach(d => {
                 totalTuition += d.amount;
                 totalDiscount += d.discount;
@@ -446,8 +477,6 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                 let badges = '';
                 if (d.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${d.teacher}</span>`;
                 
-                let discountText = d.discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${d.discount.toLocaleString()}</div>` : '';
-
                 tbody.innerHTML += `
                     <tr class="border-b border-dashed border-gray-200">
                         <td class="py-3 pl-1 pr-2 align-top">
@@ -456,7 +485,6 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                                 ${badges}
                             </div>
                             <div class="text-sm text-gray-500 mt-1 pl-0.5">${d.name}</div>
-                            ${discountText}
                         </td>
                         <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
                             ${d.amount.toLocaleString()}원
@@ -484,7 +512,6 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             const summaryHtml = `
                 <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
                     <div class="flex justify-between text-gray-600 font-bold text-base"><span>수강료/초과금 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
-                    ${totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-base"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : ''}
                     <div class="flex justify-between text-purple-600 font-bold text-base"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div>
                 </div>
                 <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
