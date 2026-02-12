@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V34</title>
+    <title>에스에듀 반포관 수강료 계산기 V35</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -29,7 +29,6 @@
         .rc-date { font-size: 0.8rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; width: 100%; text-align: center; }
         .rc-subject { font-size: 0.75rem; width: 96%; text-align: center; padding: 4px 2px; border-radius: 4px; margin-bottom: 2px; white-space: normal; word-break: keep-all; font-weight: 700; line-height: 1.2; display: block; }
         
-        /* 색상 테마 */
         .subj-default { background-color: #eff6ff; color: #004094; }
         .subj-math { background-color: #dbeafe; color: #1e40af; }
         .subj-kor { background-color: #dcfce7; color: #166534; }
@@ -50,15 +49,12 @@
         .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
         
         .receipt-content { position: relative; z-index: 10; display: flex; width: 100%; transition: all 0.3s ease; }
-        
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
-
         .layout-history { gap: 2rem; flex-direction: column; }
         .layout-history .receipt-left { order: 2; width: 100%; }
         .layout-history .receipt-right { order: 1; width: 100%; }
-        
         .layout-payment { flex-direction: column; gap: 2rem; }
         .layout-payment .receipt-left { width: 100%; }
         .layout-payment .receipt-right { display: none; } 
@@ -138,7 +134,7 @@
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3">
                             <h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 이력 데이터</h4>
-                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요.&#13;&#10;[반명, 금액, 날짜 등이 포함된 전체 데이터]"></textarea>
+                            <textarea id="historyPasteInput" class="w-full h-64 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50" placeholder="Access에서 복사한 데이터를 붙여넣으세요.&#13;&#10;[연결|일자|반명|관|출결|TR|시작|종료|시간|시간당|금액]"></textarea>
                             <button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석 및 달력 표시</button>
                         </div>
                     </div>
@@ -158,10 +154,8 @@
         </div>
 
         <div class="xl:col-span-8 flex flex-col items-center">
-            
             <div id="captureArea" class="w-full receipt-shadow border-t-[10px] border-[#004094] rounded-b-2xl p-12 mb-6 bg-white transition-colors duration-300">
                 <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" class="watermark-img" crossorigin="anonymous">
-                
                 <div class="text-center mb-8 relative z-20">
                     <img src="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" crossorigin="anonymous" class="h-14 mx-auto mb-1 object-contain">
                     <h1 class="text-2xl font-black text-[#004094] mb-0.5 tracking-tight">에스에듀 반포관</h1>
@@ -169,7 +163,6 @@
                 </div>
 
                 <div class="receipt-content layout-default" id="receiptContent">
-                    
                     <div class="receipt-left relative z-10">
                         <div class="flex justify-between items-end border-b-4 border-gray-800 pb-2 mb-6">
                             <div><span class="text-xs text-gray-500 font-bold block mb-1">학생명</span><h3 class="text-3xl font-black text-gray-900 leading-none" id="dispName">학생명</h3></div>
@@ -210,7 +203,6 @@
                 <button onclick="downloadImage()" class="w-full py-4 bg-[#004094] text-white font-bold rounded-xl shadow-xl hover:bg-blue-900 transition flex justify-center items-center gap-2 mb-4 transform hover:-translate-y-1 text-lg">
                     <span class="text-optical-center">📸 학부모 전송용 이미지 저장</span>
                 </button>
-                
                 <div class="bg-gray-100 border border-gray-300 rounded-xl p-4">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="text-sm font-bold text-gray-700">💬 안내 문자 (자동생성)</h4>
@@ -367,7 +359,6 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다."));
         }
 
-        // --- 데이터 파싱 로직 ---
         function extractTeacherName(text) {
             const parenthesisMatch = text.match(/\(([^)]+)\)/);
             if (parenthesisMatch) return parenthesisMatch[1];
@@ -378,147 +369,61 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             return ''; 
         }
 
-        // [스마트 헤더 파서]
-        function parseWithHeader(lines) {
-            const result = [];
-            // 헤더 찾기 (키워드: 반명, 금액)
-            let headerIdx = -1;
-            let colMap = {};
-            
-            for(let i=0; i<lines.length; i++) {
-                const row = lines[i].split('\t');
-                if(row.some(c => c.includes('반명')) && row.some(c => c.includes('금액'))) {
-                    headerIdx = i;
-                    row.forEach((col, idx) => {
-                        if(col.includes('반명')) colMap['name'] = idx;
-                        else if(col.includes('TR') || col.includes('이름')) colMap['tr'] = idx;
-                        else if(col.includes('수강료')) colMap['gross'] = idx;
-                        else if(col.includes('■금액') || col.trim() === '금액') colMap['net'] = idx;
-                        else if(col.includes('할인')) colMap['disc'] = idx;
-                        else if(col.includes('납부') || col.includes('결제')) colMap['pay'] = idx;
-                        else if(col.includes('일자')) colMap['date'] = idx;
-                        else if(col.includes('시간') && !col.includes('시간당')) colMap['hours'] = idx;
-                        else if(col.includes('시작')) colMap['start'] = idx;
-                        else if(col.includes('종료')) colMap['end'] = idx;
-                    });
-                    break;
-                }
-            }
-
-            // 헤더 없으면 빈 리스트 반환 (기존 로직 사용 유도)
-            if(headerIdx === -1) return null;
-
-            // 데이터 파싱
-            for(let i=headerIdx+1; i<lines.length; i++) {
-                const cols = lines[i].split('\t');
-                if(cols.length < 3) continue;
-
-                const rawName = colMap['name'] !== undefined ? cols[colMap['name']] : '';
-                // 납부행 체크 (반명이나 항목에 '납부' 포함)
-                const isPayment = rawName.includes('납부') || rawName.includes('결제') || (cols[colMap['pay']] && cols[colMap['pay']].includes('납부'));
-                
-                let amount = 0;
-                let discount = 0;
-                let gross = 0;
-
-                // 금액 추출 (콤마 제거)
-                const parseMoney = (val) => val ? parseInt(val.replace(/,/g, '')) || 0 : 0;
-
-                if (isPayment) {
-                    // 납부금은 보통 '금액' 컬럼에 음수로 있거나, '납부' 컬럼에 있음
-                    let val = parseMoney(cols[colMap['net']]); 
-                    if (val === 0 && colMap['pay'] !== undefined) val = parseMoney(cols[colMap['pay']]);
-                    if (val < 0) amount = Math.abs(val); // 양수로 변환
-                    
-                    if(amount > 0) {
-                        result.push({ type: 'payment', name: '납부/결제', amount: amount });
-                    }
-                } else {
-                    // 수업
-                    amount = parseMoney(cols[colMap['net']]); // 실청구액
-                    gross = parseMoney(cols[colMap['gross']]); // 수강료
-                    discount = parseMoney(cols[colMap['disc']]); // 할인
-                    
-                    // 할인이 0원이고, 수강료 > 금액인 경우 차액을 할인으로 간주
-                    if (discount === 0 && gross > amount) discount = gross - amount;
-
-                    const teacher = extractTeacherName(rawName) || (colMap['tr'] !== undefined ? cols[colMap['tr']] : '');
-                    
-                    // 이력 확인용 추가 데이터
-                    let dateInfo = {};
-                    if(colMap['date'] !== undefined) {
-                        const dateMatch = cols[colMap['date']].match(/(\d+)\/(\d+)/);
-                        if(dateMatch) {
-                            dateInfo = { month: parseInt(dateMatch[1]), day: parseInt(dateMatch[2]) };
-                        }
-                    }
-                    
-                    result.push({ 
-                        type: 'class', 
-                        name: rawName, 
-                        teacher: teacher, 
-                        amount: amount, 
-                        discount: discount,
-                        ...dateInfo,
-                        hours: colMap['hours'] !== undefined ? parseFloat(cols[colMap['hours']]) : 0,
-                        start: colMap['start'] !== undefined ? parseAccessTime(cols[colMap['start']]) : '',
-                        end: colMap['end'] !== undefined ? parseAccessTime(cols[colMap['end']]) : ''
-                    });
-                }
-            }
-            return result;
-        }
-
-        // [납부/차액 처리]
+        // [납부/차액 처리] 좌표 기반 파싱 (Offset Parsing)
         function processPaymentPaste() {
             const raw = document.getElementById('paymentPasteInput').value;
             const lines = raw.split('\n');
+            paymentData = []; 
             
-            // 1. 헤더 기반 파싱 시도
-            let data = parseWithHeader(lines);
-            
-            // 2. 실패 시 기존 로직 (Fallback)
-            if (!data) {
-                data = [];
-                lines.forEach(line => {
-                    if(line.trim() === '') return;
-                    const cols = line.split('\t');
-                    if (cols.length < 5) return;
-
-                    // 간단 휴리스틱
-                    let subjIdx = cols.findIndex(c => c.includes('수학') || c.includes('영어') || c.includes('국어') || c.includes('과학'));
-                    if(subjIdx === -1) {
-                        // 납부행 찾기
-                        if(line.includes('납부') || line.includes('결제')) {
-                            // 음수 찾기
-                            const negAmt = cols.find(c => c.trim().startsWith('-') && c.replace(/,/g,'').length > 3);
-                            if(negAmt) {
-                                data.push({ type: 'payment', name: '기납부 확인', amount: Math.abs(parseInt(negAmt.replace(/,/g,''))) });
-                            }
-                        }
-                        return;
+            lines.forEach(line => {
+                if(line.trim() === '') return;
+                const cols = line.split('\t');
+                
+                // 반명 찾기
+                let subjectIdx = -1;
+                for(let i=0; i<cols.length; i++) {
+                    const cell = cols[i];
+                    if(cell.includes('수학') || cell.includes('영어') || cell.includes('국어') || cell.includes('과학') || cell.includes('사회') || cell.includes('납부') || cell.includes('결제') || cell.includes('초과금')) {
+                        subjectIdx = i;
+                        break;
                     }
+                }
 
-                    const nameVal = cols[subjIdx];
-                    const teacher = extractTeacherName(nameVal);
-                    // 금액: 가장 뒤쪽의 큰 숫자들
-                    // 보통: ... 수강료(Gross) | 금액(Net) | ... | 할인
-                    // 역순으로 탐색해서 숫자 찾기
-                    const nums = [];
-                    cols.forEach(c => {
-                        const v = parseInt(c.replace(/,/g, ''));
-                        if(!isNaN(v)) nums.push(v);
-                    });
-                    
-                    // 큰 숫자 중 하나가 Net, 하나가 Gross
-                    const net = nums.find(n => n > 1000); // 대략적인 추정
-                    const disc = nums.find(n => n > 0 && n < net); // 대략적인 추정
-                    
-                    data.push({ type: 'class', name: nameVal, teacher: teacher, amount: net || 0, discount: disc || 0 });
-                });
-            }
-            
-            paymentData = data;
+                if(subjectIdx === -1) return;
+
+                const nameVal = cols[subjectIdx];
+                let type = 'unknown';
+                let teacher = '';
+                let amount = 0;
+                let discount = 0;
+
+                const parseMoney = (val) => val ? parseInt(val.replace(/,/g, '')) || 0 : 0;
+
+                // 1. 납부/결제
+                if (nameVal.includes('납부') || nameVal.includes('결제')) {
+                    type = 'payment';
+                    // 금액: 반명 + 9 (음수)
+                    const val = parseMoney(cols[subjectIdx + 9]);
+                    if (val < 0) amount = Math.abs(val);
+                } 
+                // 2. 초과금 (수업 타입으로 처리하되 이름으로 구분)
+                else if (nameVal.includes('초과금') || nameVal.includes('이월')) {
+                    type = 'class';
+                    amount = parseMoney(cols[subjectIdx + 9]);
+                }
+                // 3. 일반 수업
+                else {
+                    type = 'class';
+                    teacher = extractTeacherName(nameVal) || cols[subjectIdx+1];
+                    amount = parseMoney(cols[subjectIdx + 9]); // 금액
+                    discount = parseMoney(cols[subjectIdx + 12]); // 할인
+                }
+
+                if (type !== 'unknown') {
+                    paymentData.push({ type, name: nameVal, teacher, amount, discount });
+                }
+            });
+
             updatePaymentView();
         }
 
@@ -531,10 +436,9 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
             let totalPaid = 0;
             let totalDiscount = 0;
 
+            // 수업/초과금 리스트
             paymentData.filter(d => d.type === 'class').forEach(d => {
-                // 수강료 총액 = 실청구액 + 할인액
-                const originalPrice = d.amount + d.discount;
-                totalTuition += originalPrice;
+                totalTuition += d.amount;
                 totalDiscount += d.discount;
                 
                 const parts = d.name.split('-');
@@ -560,6 +464,7 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                     </tr>`;
             });
 
+            // 납부 리스트
             paymentData.filter(d => d.type === 'payment').forEach(d => {
                 totalPaid += d.amount;
                 tbody.innerHTML += `
@@ -575,15 +480,16 @@ ${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.
                     </tr>`;
             });
 
+            const balance = totalTuition - totalPaid;
             const summaryHtml = `
                 <div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6">
-                    <div class="flex justify-between text-gray-600 font-bold text-base"><span>수강료 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
+                    <div class="flex justify-between text-gray-600 font-bold text-base"><span>수강료/초과금 총액</span><span>${totalTuition.toLocaleString()}원</span></div>
                     ${totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-base"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : ''}
                     <div class="flex justify-between text-purple-600 font-bold text-base"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div>
                 </div>
                 <div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100">
                     <span class="text-xl font-black text-gray-800">미납/차액 합계</span>
-                    <span class="text-4xl font-black ${totalTuition - totalDiscount - totalPaid > 0 ? 'text-red-600' : 'text-blue-600'}">${(totalTuition - totalDiscount - totalPaid).toLocaleString()}원</span>
+                    <span class="text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-blue-600'}">${balance.toLocaleString()}원</span>
                 </div>
             `;
             document.getElementById('priceSummaryArea').innerHTML = summaryHtml;
