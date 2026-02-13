@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://raw.githubusercontent.com/whdtjd5294/whdtjd5294.github.io/main/sedu_logo.png" type="image/png">
-    <title>에스에듀 반포관 수강료 계산기 V50</title>
+    <title>에스에듀 반포관 수강료 계산기 V51</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -24,24 +24,23 @@
         .mode-select .selected-day { background-color: #004094 !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.1); }
         .mode-history .history-day { background-color: #dcfce7 !important; color: #166534 !important; font-weight: bold; border: 1px solid #86efac; }
         .mode-ai .ai-day { background-color: #e0e7ff !important; color: #3730a3 !important; font-weight: bold; border: 1px solid #c7d2fe; }
+        /* 시간표 모드 스타일 */
+        .mode-timetable .tt-day { background-color: #fff7ed !important; color: #ea580c !important; font-weight: bold; border: 1px solid #fed7aa; }
 
         .receipt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e5e7eb; border: 1px solid #e5e7eb; }
         .receipt-cal-cell { background-color: white; min-height: 80px; height: auto; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         .rc-date { font-size: 0.8rem; font-weight: bold; color: #9ca3af; margin-bottom: 4px; line-height: 1; width: 100%; text-align: center; }
         .rc-subject { font-size: 0.75rem; width: 96%; text-align: center; padding: 2px; border-radius: 4px; margin-bottom: 2px; white-space: normal; word-break: keep-all; font-weight: 700; line-height: 1.2; display: block; }
         
-        /* 과목별 색상 */
         .subj-default { background-color: #eff6ff; color: #004094; }
         .subj-math { background-color: #dbeafe; color: #1e40af; }
         .subj-kor { background-color: #dcfce7; color: #166534; }
         .subj-eng { background-color: #fee2e2; color: #991b1b; }
         .subj-sci { background-color: #f3e8ff; color: #6b21a8; }
         .subj-soc { background-color: #fef3c7; color: #92400e; }
-        
-        /* [NEW] 특별 수업 강조 스타일 */
-        .subj-oneonone { background-color: #fce7f3; color: #be185d; border: 1px solid #f9a8d4; } /* 1:1 - 핑크/레드 */
-        .subj-twoonone { background-color: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; } /* 2:1 - 보라 */
-        .subj-makeup { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; } /* 보강 - 주황 */
+        .subj-oneonone { background-color: #fce7f3; color: #be185d; border: 1px solid #f9a8d4; }
+        .subj-twoonone { background-color: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+        .subj-makeup { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
         .subj-predicted { border: 1px dashed #6366f1; background-color: #eef2ff; color: #4338ca; } 
 
         .rc-active-date { color: #1f2937; }
@@ -49,20 +48,15 @@
 
         .badge-base { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.8rem; border-radius: 6px; font-weight: 700; margin-left: 4px; vertical-align: middle; line-height: 1; }
         .type-badge { background-color: #004094; color: white; }
-        
-        /* [NEW] 1:1 / 2:1 전용 배지 */
         .badge-1on1 { background-color: #be123c; color: white; }
         .badge-2on1 { background-color: #7c3aed; color: white; }
-        
         .teacher-badge { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
         .time-badge { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
         .makeup-badge { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
 
         #captureArea { position: relative; overflow: hidden; background-color: white; max-width: 1100px; width: 1100px; }
         .watermark-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; opacity: 0.05; pointer-events: none; z-index: 0; }
-        
         .receipt-content { position: relative; z-index: 10; display: flex; width: 100%; transition: all 0.3s ease; }
-        
         .layout-default { gap: 3rem; flex-direction: row; }
         .layout-default .receipt-left { flex: 1; order: 1; }
         .layout-default .receipt-right { flex: 1; order: 2; display: flex; flex-direction: column; }
@@ -105,7 +99,7 @@
                     </div>
                     <div class="flex gap-3">
                         <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetYear" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
-                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">연도</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
+                        <div class="flex-1"><label class="block text-xs font-bold text-gray-500 mb-1">월</label><input type="number" id="targetMonth" min="1" max="12" class="w-full p-3 border border-gray-300 rounded-lg text-center text-sm font-bold" onchange="resetAndUpdate()"></div>
                     </div>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-100">
@@ -116,6 +110,7 @@
                     <div id="historyGuide" class="hidden text-[10px] text-green-600 bg-green-50 p-2 rounded mb-2 border border-green-100 text-center">✅ Access 데이터 기반 <b>수강 이력</b> 표시 중</div>
                     <div id="paymentGuide" class="hidden text-[10px] text-purple-600 bg-purple-50 p-2 rounded mb-2 border border-purple-100 text-center">💰 Access 데이터 기반 <b>납부/차액</b> 계산 중</div>
                     <div id="aiGuide" class="hidden text-[10px] text-indigo-600 bg-indigo-50 p-2 rounded mb-2 border border-indigo-100 text-center">🤖 수업 패턴 분석 및 <b>자동 예측</b> 완료</div>
+                    <div id="ttGuide" class="hidden text-[10px] text-orange-600 bg-orange-50 p-2 rounded mb-2 border border-orange-100 text-center">📅 노션 시간표 기반 <b>자동 계산</b> 중</div>
                     <div id="selectGuide" class="hidden text-[10px] text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-100 text-center animate-pulse">👇 아래 <b>목록을 먼저 클릭(파란테두리)</b>한 뒤 달력을 누르세요!</div>
                     <div class="grid grid-cols-7 text-center text-[10px] border-b pb-2 mb-2 font-bold text-gray-400">
                         <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
@@ -139,6 +134,7 @@
                     <button onclick="switchTab('auto')" id="btn-auto" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400 min-w-[60px]">요일고정</button>
                     <button onclick="switchTab('select')" id="btn-select" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400 min-w-[50px]">선택형</button>
                     <button onclick="switchTab('manual')" id="btn-manual" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400 min-w-[50px]">변동형</button>
+                    <button onclick="switchTab('timetable')" id="btn-timetable" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-orange-600 hover:text-orange-700 bg-orange-50 min-w-[60px]">시간표</button>
                     <button onclick="switchTab('history')" id="btn-history" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-green-600 hover:text-green-700 bg-green-50 min-w-[60px]">이력확인</button>
                     <button onclick="switchTab('ai')" id="btn-ai" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-indigo-600 hover:text-indigo-700 bg-indigo-50 min-w-[60px]">AI예측</button>
                     <button onclick="switchTab('payment')" id="btn-payment" class="flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-purple-600 hover:text-purple-700 bg-purple-50 min-w-[60px]">납부/차액</button>
@@ -148,6 +144,15 @@
                     <div id="tab-select" class="hidden"><div id="selectList" class="space-y-3"></div><button onclick="addSelectRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button></div>
                     <div id="tab-manual" class="hidden"><div id="manualList" class="space-y-3"></div><button onclick="addManualRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 text-xs font-bold rounded hover:border-[#004094] hover:text-[#004094]">+ 과목 추가</button></div>
                     
+                    <div id="tab-timetable" class="hidden">
+                         <div class="bg-white p-3 rounded border border-orange-200 mb-3">
+                            <h4 class="text-xs font-bold text-orange-700 mb-2">📅 노션 시간표 붙여넣기</h4>
+                            <textarea id="ttPasteInput" class="w-full h-32 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-orange-500 font-mono resize-none bg-gray-50 whitespace-pre" placeholder="노션 시간표 전체를 드래그해서 붙여넣으세요.&#13;&#10;예: 13-14시  수학(월)  ..."></textarea>
+                            <button onclick="processTimetable()" class="w-full mt-2 py-2 bg-orange-600 text-white text-xs font-bold rounded hover:bg-orange-700">시간표 분석하여 적용</button>
+                        </div>
+                        <div id="ttList" class="space-y-3"></div>
+                    </div>
+
                     <div id="tab-history" class="hidden">
                         <div class="bg-white p-3 rounded border border-green-200 mb-3"><h4 class="text-xs font-bold text-green-700 mb-2">📋 Access 이력 데이터</h4><textarea id="historyPasteInput" class="w-full h-40 text-[10px] p-2 border border-gray-200 rounded focus:outline-none focus:border-green-500 font-mono resize-none bg-gray-50 whitespace-pre" placeholder="Access에서 복사한 데이터를 붙여넣으세요."></textarea><button onclick="processHistoryPaste()" class="w-full mt-2 py-2 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700">이력 분석</button></div>
                     </div>
@@ -242,7 +247,8 @@
         const selectRowDates = {};     
         let historyData = [];
         let paymentData = [];
-        let aiData = []; 
+        let aiData = [];
+        let ttData = []; // [NEW] 시간표 데이터
         let rowCounter = 0;
 
         window.onload = function() {
@@ -255,17 +261,15 @@
 
         function generateSafeId() { return 'item_' + (++rowCounter); }
         function escapeHtml(text) { return text.replace(/"/g, '&quot;'); }
+        function togglePasteArea() { const el = document.getElementById('pasteAreaContainer'); if(el) el.classList.toggle('hidden'); }
 
-        // [V50] 특별 수업 색상 구분 (1:1, 2:1, 보강)
         function getSubjectColorClass(name, isMakeup, isPredicted) {
             if (isPredicted) return 'subj-predicted'; 
             if (isMakeup) return 'subj-makeup';
             if (!name) return 'subj-default';
             const n = name.trim();
-            // [NEW] 1:1, 2:1 우선 체크
             if (n.includes('1:1')) return 'subj-oneonone';
             if (n.includes('2:1')) return 'subj-twoonone';
-            
             if (n.includes('수학')) return 'subj-math';
             if (n.includes('국어')) return 'subj-kor';
             if (n.includes('영어')) return 'subj-eng';
@@ -288,8 +292,8 @@
                 let part = parts[i].trim();
                 const parenMatch = part.match(/(.*)\(([^)]+)\)$/);
                 if (parenMatch) {
-                    if (parenMatch[1]) type = parenMatch[1]; // 2:1 등 유형
-                    teacher = parenMatch[2]; // 이름
+                    if (parenMatch[1]) type = parenMatch[1]; 
+                    teacher = parenMatch[2]; 
                 } else if (part.toUpperCase().endsWith('T')) teacher = part;
                 else type = part; 
             }
@@ -308,7 +312,7 @@
 
         function switchTab(tab) {
             currentTab = tab;
-            ['auto', 'select', 'manual', 'history', 'payment', 'ai'].forEach(t => {
+            ['auto', 'select', 'manual', 'history', 'payment', 'ai', 'timetable'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`btn-${t}`);
                 if(t === tab) {
@@ -316,6 +320,7 @@
                     if (t === 'history') colorClass = 'bg-green-50 text-green-700 border-green-600';
                     if (t === 'payment') colorClass = 'bg-purple-50 text-purple-700 border-purple-600';
                     if (t === 'ai') colorClass = 'bg-indigo-50 text-indigo-700 border-indigo-600';
+                    if (t === 'timetable') colorClass = 'bg-orange-50 text-orange-700 border-orange-600';
                     btn.className = `flex-1 py-3 text-[11px] font-bold text-center border-b-2 ${colorClass}`;
                 } else {
                     btn.className = "flex-1 py-3 text-[11px] font-bold text-center border-b-2 border-transparent text-gray-400 hover:text-gray-600";
@@ -325,14 +330,15 @@
             const isHistory = (tab === 'history');
             const isPayment = (tab === 'payment');
             const isAi = (tab === 'ai');
+            const isTt = (tab === 'timetable');
             
-            document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory || isPayment || isAi);
+            document.getElementById('smartPasteSection').classList.toggle('hidden', isHistory || isPayment || isAi || isTt);
             document.getElementById('adjustmentArea').classList.toggle('hidden', isHistory || isPayment || isAi); 
             document.getElementById('priceSummaryArea').classList.toggle('hidden', isHistory);
             
             const contentDiv = document.getElementById('receiptContent');
             contentDiv.className = "receipt-content"; 
-            if (isHistory || isAi) contentDiv.classList.add('layout-history');
+            if (isHistory || isAi || isTt) contentDiv.classList.add('layout-history');
             else if (isPayment) contentDiv.classList.add('layout-payment');
             else contentDiv.classList.add('layout-default');
 
@@ -340,6 +346,7 @@
             if (isHistory) { badgeColor = 'bg-green-600'; borderColor = 'border-green-600'; subTitle = '수강 이력 확인서'; thAmountText = '시간'; }
             else if (isPayment) { badgeColor = 'bg-purple-600'; borderColor = 'border-purple-600'; subTitle = '납부 및 차액 안내서'; thAmountText = '금액'; totalLabel = '미납/차액 합계'; }
             else if (isAi) { badgeColor = 'bg-indigo-600'; borderColor = 'border-indigo-600'; subTitle = 'AI 수강 예측서'; thAmountText = '금액'; }
+            else if (isTt) { badgeColor = 'bg-orange-600'; borderColor = 'border-orange-600'; subTitle = '노션 시간표 기반 안내'; thAmountText = '금액'; }
 
             document.getElementById('thAmount').innerText = thAmountText;
             document.getElementById('receiptSubTitle').innerText = subTitle;
@@ -353,115 +360,199 @@
             if (isHistory) updateHistoryView(); 
             else if (isPayment) updatePaymentView();
             else if (isAi) renderAiResult(); 
+            else if (isTt) updateTimetableView(); // [NEW] 시간표 뷰
             else updateDateContext();
         }
 
-        // [V50 수정] updateAll - 1:1, 2:1 배지 적용
-        function updateAll() {
-            if (currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai') return; 
-            const name = document.getElementById('studentName').value || '학생명';
-            const year = document.getElementById('targetYear').value;
-            const month = document.getElementById('targetMonth').value;
-            document.getElementById('dispName').innerText = name;
-            document.getElementById('dispDate').innerText = `${year}년 ${month}월분`;
+        // [NEW] 노션 시간표 파싱 로직 (핵심)
+        function processTimetable() {
+            const raw = document.getElementById('ttPasteInput').value;
+            const lines = raw.split('\n');
+            const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
+            const dayMap = {}; // { 1: [수업1, 수업2], 2: ... } (0=일, 1=월...)
 
-            const adjInput = document.getElementById('adjustment');
-            const adj = adjInput ? (parseFloat(adjInput.value) || 0) : 0;
-            const adjEl = document.getElementById('dispAdj');
-            if(adjEl) {
-                adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원';
-                adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold");
-            }
+            lines.forEach(line => {
+                if(!line.trim()) return;
+                const cols = line.split('\t');
+                const timeStr = cols[0].trim(); // "13-14시"
+                if (!timeStr.match(/^\d{1,2}-\d{1,2}시/)) return; // 시간 형식이 아니면 스킵
 
-            const tbody = document.getElementById('receiptBody'); tbody.innerHTML = '';
-            let subtotal = 0;
-            const allEvents = [];
+                // 13-14시 -> 시작시간 13
+                const startHour = parseInt(timeStr.split('-')[0]);
 
-            try {
-                let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row');
-                document.querySelectorAll(selector).forEach(row => {
-                    const rawName = row.querySelector('.sub-name').value;
-                    const rate = parseFloat(row.querySelector('.sub-rate').value) || 0;
-                    let count = parseFloat(row.querySelector('.sub-count').value) || 0;
-                    let rowTotal = 0; let detailStr = ''; let manualTime = '';
+                // 각 요일별 수업 확인
+                for(let i=1; i<cols.length; i++) {
+                    const subject = cols[i].trim();
+                    if(subject && weekDays[i-1]) {
+                        // 요일 인덱스 변환: 월(0)->1, 화(1)->2 ... 일(6)->0
+                        const dayIdx = (i === 7) ? 0 : i; 
+                        if(!dayMap[dayIdx]) dayMap[dayIdx] = [];
+                        dayMap[dayIdx].push({ subject, start: startHour });
+                    }
+                }
+            });
 
-                    if(currentTab === 'manual') {
-                        const time = parseFloat(row.querySelector('.sub-time').value) || 0;
-                        rowTotal = time * count * rate;
-                        detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`;
-                        manualTime = `${time}시간`;
+            // 연속된 수업 병합 (예: 13시 수학, 14시 수학 -> 수학 2시간)
+            ttData = [];
+            for (const [dayIdx, classes] of Object.entries(dayMap)) {
+                // 정렬
+                classes.sort((a,b) => a.start - b.start);
+                
+                let current = null;
+                classes.forEach(cls => {
+                    if (current && current.subject === cls.subject && current.start + current.duration === cls.start) {
+                        current.duration++; // 연속 수업
                     } else {
-                        rowTotal = count * rate;
-                        detailStr = `${count}회(월) × ${rate.toLocaleString()}원`;
-                    }
-
-                    if (rowTotal > 0 || count > 0) {
-                        subtotal += rowTotal;
-                        const info = parseSubjectInfo(rawName);
-                        if (manualTime) info.timeText = manualTime;
-                        
-                        let badges = '';
-                        // [V50] 1:1, 2:1 배지 강조
-                        if (info.type) {
-                            let badgeClass = "badge-base type-badge text-optical-center";
-                            if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center";
-                            else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center";
-                            badges += `<span class="${badgeClass}">${info.type}</span>`;
-                        }
-                        if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`;
-                        const timeDisplay = info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : '';
-
-                        tbody.innerHTML += `
-                            <tr class="border-b border-dashed border-gray-200 last:border-0">
-                                <td class="py-3 pl-1 pr-2 align-top no-wrap-cell">
-                                    <div class="flex items-center flex-wrap gap-y-1 mb-1">
-                                        <span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>
-                                        ${timeDisplay}${badges}
-                                    </div>
-                                    <div class="text-sm text-gray-500 pl-0.5">${detailStr}</div>
-                                </td>
-                                <td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td>
-                            </tr>`;
-                    }
-                    
-                    if(currentTab === 'auto') {
-                        const checkedBoxes = row.querySelectorAll('.day-chk:checked');
-                        const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-                        const date = new Date(year, month - 1, 1);
-                        while (date.getMonth() === month - 1) {
-                            if (activeDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) {
-                                allEvents.push({day: date.getDate(), name: rawName.split('-')[0], rawName: rawName});
-                            }
-                            date.setDate(date.getDate() + 1);
-                        }
-                    } else if(currentTab === 'select') {
-                        const rowId = row.id.replace('srow-', '');
-                        if(selectRowDates[rowId]) {
-                            selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0], rawName: rawName}));
-                        }
+                        if(current) ttData.push(current);
+                        current = { day: parseInt(dayIdx), subject: cls.subject, start: cls.start, duration: 1 };
                     }
                 });
-            } catch (e) { console.error("Row Calc Error", e); }
+                if(current) ttData.push(current);
+            }
 
-            if (isNaN(subtotal)) subtotal = 0;
-            document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원';
-            document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원';
-            renderCommonReceiptCalendar(allEvents);
-            updateInfoText(subtotal, adj);
+            renderTimetableResult();
         }
 
-        // [이전 함수들: updateInfoText, copyGeneratedText, extractTeacherName 등]
-        function updateInfoText(totalAmount, adjustment) { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai') return; const name = document.getElementById('studentName').value || '학생명'; const month = document.getElementById('targetMonth').value; const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0'; const totalStr = (totalAmount + adjustment).toLocaleString(); const text = `※전체 재원생 수강료 안내※\n안녕하세요 에스학원입니다.\n수강료 안내 드립니다.\n\n${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.\n이전 달의 이월/초과금은 ${adjStr} 원입니다.\n\n학부모님 연락처로 결제링크 발송드리겠습니다.\n\n납부금액보다 수업 수강료가 적거나 많을 경우\n다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.\n\n**수강료 안내에서 회당란 가격은 시간당 가격이고\n횟수란, 한 달 총 수강 시간입니다.\n\n※ 수업 취소 안내 ※\n수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.\n당일취소는 환불되거나 이월되지 않습니다.\n[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 \n취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.\n양해 부탁드립니다. ]\n[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]\n\n‘결제링크’ 통해 카드 분할 결제 가능합니다.\n그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. \n감사합니다.`; document.getElementById('generatedTextArea').value = text; }
+        function renderTimetableResult() {
+            const listDiv = document.getElementById('ttList');
+            listDiv.innerHTML = '';
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+            ttData.forEach((item, idx) => {
+                const id = `tt-${idx}`;
+                const html = `<div class="bg-white p-3 border border-orange-200 rounded-lg shadow-sm flex items-center justify-between" id="${id}">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded text-xs">${dayNames[item.day]}요일</span>
+                            <span class="font-bold text-gray-800 text-sm">${item.subject}</span>
+                            <span class="text-gray-500 text-xs">(${item.duration}h)</span>
+                        </div>
+                        <input type="text" class="tt-name-input hidden" value="${item.subject}">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-400">단가:</span>
+                        <input type="number" class="tt-price-input w-24 p-1 border rounded text-right text-sm font-bold" placeholder="0" oninput="updateTimetableView()">
+                        <input type="hidden" class="tt-day-val" value="${item.day}">
+                        <input type="hidden" class="tt-dur-val" value="${item.duration}">
+                    </div>
+                </div>`;
+                listDiv.insertAdjacentHTML('beforeend', html);
+            });
+            updateTimetableView();
+        }
+
+        function updateTimetableView() {
+            if (currentTab !== 'timetable') return;
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            const tbody = document.getElementById('receiptBody');
+            tbody.innerHTML = '';
+            
+            let totalAmount = 0;
+            const calendarEvents = [];
+            const adj = parseInt(document.getElementById('adjustment').value) || 0;
+
+            document.querySelectorAll('#ttList > div').forEach(row => {
+                const dayIdx = parseInt(row.querySelector('.tt-day-val').value);
+                const subject = row.querySelector('.text-gray-800').innerText; // 이름
+                const duration = parseInt(row.querySelector('.tt-dur-val').value);
+                const price = parseInt(row.querySelector('.tt-price-input').value) || 0;
+                
+                // 해당 월의 요일 수 계산
+                let count = 0;
+                const date = new Date(year, month - 1, 1);
+                while(date.getMonth() === month - 1) {
+                    if(date.getDay() === dayIdx && !excludedDates.has(date.getDate())) {
+                        count++;
+                        // 캘린더용 데이터 추가
+                        calendarEvents.push({
+                            day: date.getDate(),
+                            name: `${subject.split('-')[0]}`, // 간략 이름
+                            rawName: subject,
+                            isTt: true // 시간표 모드 플래그
+                        });
+                    }
+                    date.setDate(date.getDate() + 1);
+                }
+
+                if (count > 0 && price > 0) {
+                    const rowTotal = count * price;
+                    totalAmount += rowTotal;
+
+                    const info = parseSubjectInfo(subject);
+                    let badges = '';
+                    if (info.type) {
+                        let badgeClass = "badge-base type-badge text-optical-center";
+                        if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center";
+                        else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center";
+                        badges += `<span class="${badgeClass}">${info.type}</span>`;
+                    }
+                    if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`;
+                    
+                    const timeDisplay = `<span class="time-badge badge-base text-optical-center mr-1">${duration}시간</span>`;
+
+                    tbody.innerHTML += `
+                    <tr class="border-b border-dashed border-gray-200">
+                        <td class="py-3 pl-1 pr-2 align-top">
+                            <div class="flex items-center flex-wrap gap-y-1 mb-1">
+                                <span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>
+                                ${timeDisplay}${badges}
+                            </div>
+                            <div class="text-sm text-gray-500 pl-0.5">
+                                ${subject} / 월 ${count}회
+                            </div>
+                        </td>
+                        <td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">
+                            ${rowTotal.toLocaleString()}원
+                        </td>
+                    </tr>`;
+                }
+            });
+            
+            const finalTotal = totalAmount + adj;
+            document.getElementById('dispSubtotal').innerText = totalAmount.toLocaleString() + '원';
+            const adjRow = document.getElementById('dispAdjRow');
+            if(adjRow) {
+                 adjRow.innerHTML = `<span>이월/초과금 조정</span><span class="${adj===0?'text-gray-300':'text-red-500'}">${(adj>0?'+':'')+adj.toLocaleString()}원</span>`;
+            }
+            document.getElementById('dispTotal').innerText = finalTotal.toLocaleString() + '원';
+
+            // 달력 그리기
+            renderTtCalendar(calendarEvents);
+        }
+
+        // [NEW] 시간표 전용 달력 렌더러
+        function renderTtCalendar(events) {
+            const year = parseInt(document.getElementById('targetYear').value);
+            const month = parseInt(document.getElementById('targetMonth').value);
+            document.getElementById('calTitleReceipt').innerText = `${month}월 수업 일정 상세`;
+            const calDiv = document.getElementById('receiptMiniCalGrid'); calDiv.innerHTML = '';
+            const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate();
+            
+            for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div class="receipt-cal-cell bg-gray-50/50"></div>`;
+            for(let i=1; i<=lastDate; i++) {
+                const dayEvents = events.filter(e => e.day === i);
+                let html = `<div class="receipt-cal-cell"><div class="rc-date ${dayEvents.length > 0 ? 'rc-active-date' : ''}">${i}</div>`;
+                dayEvents.forEach(e => {
+                    // 시간표 모드 스타일 적용 (tt-day 클래스 활용 가능)
+                    let colorClass = getSubjectColorClass(e.rawName, false, false);
+                    if(e.isTt) colorClass += " tt-day"; // 시간표 전용 색상 추가
+                    html += `<span class="rc-subject shadow-sm text-optical-center ${colorClass}">${e.name}</span>`;
+                });
+                html += `</div>`;
+                calDiv.innerHTML += html;
+            }
+        }
+
+        // [기존 공통 함수들 유지]
+        function updateInfoText(totalAmount, adjustment) { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai' || currentTab === 'timetable') return; const name = document.getElementById('studentName').value || '학생명'; const month = document.getElementById('targetMonth').value; const adjStr = adjustment !== 0 ? adjustment.toLocaleString() : '0'; const totalStr = (totalAmount + adjustment).toLocaleString(); const text = `※전체 재원생 수강료 안내※\n안녕하세요 에스학원입니다.\n수강료 안내 드립니다.\n\n${name} 학생 ${month}월 수업 수강료는 ${totalStr} 원 입니다.\n이전 달의 이월/초과금은 ${adjStr} 원입니다.\n\n학부모님 연락처로 결제링크 발송드리겠습니다.\n\n납부금액보다 수업 수강료가 적거나 많을 경우\n다음 달 수강료에서 차감또는 추가 하도록 하겠습니다.\n\n**수강료 안내에서 회당란 가격은 시간당 가격이고\n횟수란, 한 달 총 수강 시간입니다.\n\n※ 수업 취소 안내 ※\n수업취소는 전날 저녁 8시 전까지 데스크로 전달 부탁드립니다.\n당일취소는 환불되거나 이월되지 않습니다.\n[ 원활한 커리큘럼 진행을 위해 가능한 담당 선생님과 \n취소된 수업 기준으로 2주안에  보충 진행하하겠습니다.\n양해 부탁드립니다. ]\n[  1:1 수업인 경우 당일취소 수업은 2주안에 개별정규 수업으로 보충 수업 진행 됩니다. ]\n\n‘결제링크’ 통해 카드 분할 결제 가능합니다.\n그 외에 - 서울페이 제로페이 가능 - 계좌이체 가능합니다. \n감사합니다.`; document.getElementById('generatedTextArea').value = text; }
         function copyGeneratedText() { const copyText = document.getElementById("generatedTextArea"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value).then(() => alert("텍스트가 복사되었습니다.")); }
         function extractTeacherName(text) { const parenthesisMatch = text.match(/\(([^)]+)\)/); if (parenthesisMatch) return parenthesisMatch[1]; const parts = text.split('-'); for(let p of parts) if(p.trim().toUpperCase().endsWith('T')) return p.trim(); return ''; }
-        function togglePasteArea() { document.getElementById('pasteAreaContainer').classList.toggle('hidden'); }
         function processSmartPaste() { const rawText = document.getElementById('smartPasteInput').value; if (!rawText.trim()) return; const lines = rawText.split('\n'); lines.forEach(line => { line = line.trim(); if (!line) return; let detectedTime = 0; let cleanName = line; const timeMatch = line.match(/-(\d+(\.\d+)?)h$/i) || line.match(/(\d+(\.\d+)?)h$/i); if (timeMatch) detectedTime = parseFloat(timeMatch[1]); if (currentTab === 'manual') addManualRow(cleanName, detectedTime); else if (currentTab === 'select') addSelectRow(cleanName); else addAutoRow(cleanName); }); document.getElementById('smartPasteInput').value = ''; alert(`${lines.length}개의 과목이 추가되었습니다.`); updateAll(); }
-        function resetAndUpdate() { excludedDates.clear(); for (const key in selectRowDates) { selectRowDates[key].clear(); } if(currentTab === 'history') updateHistoryView(); else if(currentTab === 'payment') updatePaymentView(); else if(currentTab === 'ai') renderAiResult(); else updateDateContext(); }
-        function updateDateContext() { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai') return; renderCalendar(); recalcAllAutoCounts(); updateAll(); }
+        function resetAndUpdate() { excludedDates.clear(); for (const key in selectRowDates) { selectRowDates[key].clear(); } if(currentTab === 'history') updateHistoryView(); else if(currentTab === 'payment') updatePaymentView(); else if(currentTab === 'ai') renderAiResult(); else if(currentTab === 'timetable') updateTimetableView(); else updateDateContext(); }
+        function updateDateContext() { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai' || currentTab === 'timetable') return; renderCalendar(); recalcAllAutoCounts(); updateAll(); }
         function toggleDateExclusion(day) { if (currentTab === 'auto') { if(excludedDates.has(day)) excludedDates.delete(day); else excludedDates.add(day); } else if (currentTab === 'select') { if (activeSelectRowId && selectRowDates[activeSelectRowId]) { const rowDates = selectRowDates[activeSelectRowId]; if(rowDates.has(day)) rowDates.delete(day); else rowDates.add(day); } else { alert("먼저 과목을 클릭해서 선택하세요!"); return; } } updateDateContext(); }
-        
-        // [V50] 달력 중복 표시 로직 개선
-        function renderCalendar() { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai') return; const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); const calDiv = document.getElementById('calendarGrid'); document.getElementById('calTitle').innerText = `${month}월 설정`; calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; document.getElementById('calBadge').innerText = currentTab === 'auto' ? "휴강 제외" : (currentTab === 'select' ? "날짜 선택" : "미사용"); document.getElementById('calBadge').className = currentTab === 'auto' ? "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold" : (currentTab === 'select' ? "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold" : "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded"); if(currentTab === 'auto') calDiv.classList.add('mode-auto'); if(currentTab === 'select') calDiv.classList.add('mode-select'); calDiv.innerHTML = ''; const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate(); const activeWeekdays = new Set(); if (currentTab === 'auto') document.querySelectorAll('#autoList .auto-row').forEach(row => row.querySelectorAll('.day-chk:checked').forEach(c => activeWeekdays.add(parseInt(c.value)))); for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`; for(let i=1; i<=lastDate; i++) { let div = document.createElement('div'); div.innerText = i; if(currentTab === 'auto') { if (excludedDates.has(i)) div.className = "excluded-day"; else if (activeWeekdays.has(new Date(year, month-1, i).getDay())) div.className = "highlight-day shadow-sm"; } else if (currentTab === 'select' && activeSelectRowId && selectRowDates[activeSelectRowId]) { if (selectRowDates[activeSelectRowId].has(i)) div.className = "selected-day"; } div.onclick = () => toggleDateExclusion(i); calDiv.appendChild(div); } }
+        function renderCalendar() { if(currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai' || currentTab === 'timetable') return; const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); const calDiv = document.getElementById('calendarGrid'); document.getElementById('calTitle').innerText = `${month}월 설정`; calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400"; document.getElementById('calBadge').innerText = currentTab === 'auto' ? "휴강 제외" : (currentTab === 'select' ? "날짜 선택" : "미사용"); document.getElementById('calBadge').className = currentTab === 'auto' ? "text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold" : (currentTab === 'select' ? "text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded font-bold" : "text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded"); if(currentTab === 'auto') calDiv.classList.add('mode-auto'); if(currentTab === 'select') calDiv.classList.add('mode-select'); calDiv.innerHTML = ''; const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate(); const activeWeekdays = new Set(); if (currentTab === 'auto') document.querySelectorAll('#autoList .auto-row').forEach(row => row.querySelectorAll('.day-chk:checked').forEach(c => activeWeekdays.add(parseInt(c.value)))); for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`; for(let i=1; i<=lastDate; i++) { let div = document.createElement('div'); div.innerText = i; if(currentTab === 'auto') { if (excludedDates.has(i)) div.className = "excluded-day"; else if (activeWeekdays.has(new Date(year, month-1, i).getDay())) div.className = "highlight-day shadow-sm"; } else if (currentTab === 'select' && activeSelectRowId && selectRowDates[activeSelectRowId]) { if (selectRowDates[activeSelectRowId].has(i)) div.className = "selected-day"; } div.onclick = () => toggleDateExclusion(i); calDiv.appendChild(div); } }
         function recalcRow(rowIdSuffix, type) { const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); const row = document.getElementById(type === 'auto' ? `arow-${rowIdSuffix}` : `srow-${rowIdSuffix}`); if (!row) return; let count = 0; if (type === 'auto') { const selectedDays = []; row.querySelectorAll('.day-chk:checked').forEach(c => selectedDays.push(parseInt(c.value))); const date = new Date(year, month - 1, 1); while (date.getMonth() === month - 1) { if (selectedDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) count++; date.setDate(date.getDate() + 1); } } else { count = selectRowDates[rowIdSuffix] ? selectRowDates[rowIdSuffix].size : 0; } const cntInput = row.querySelector('.sub-count'); if(cntInput) cntInput.value = count; }
         function recalcAllAutoCounts() { document.querySelectorAll('.auto-row').forEach(row => recalcRow(row.id.replace('arow-', ''), 'auto')); document.querySelectorAll('.select-row').forEach(row => recalcRow(row.id.replace('srow-', ''), 'select')); }
         function renderCommonReceiptCalendar(events) { const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); document.getElementById('calTitleReceipt').innerText = `${month}월 수업 일정 상세`; const calDiv = document.getElementById('receiptMiniCalGrid'); calDiv.innerHTML = ''; const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate(); for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div class="receipt-cal-cell bg-gray-50/50"></div>`; for(let i=1; i<=lastDate; i++) { const dayEvents = events.filter(e => e.day === i); let html = `<div class="receipt-cal-cell"><div class="rc-date ${dayEvents.length > 0 ? 'rc-active-date' : ''}">${i}</div>`; dayEvents.forEach(e => { const colorClass = getSubjectColorClass(e.rawName || e.name, e.isMakeup, e.isPredicted); html += `<span class="rc-subject shadow-sm text-optical-center ${colorClass}">${e.name}</span>`; }); html += `</div>`; calDiv.innerHTML += html; } }
@@ -470,19 +561,7 @@
         function addSelectRow(nameVal = '') { const id = generateSafeId(); selectRowDates[id] = new Set(); const html = `<div class="bg-white p-4 border border-blue-200 rounded-lg shadow-sm relative group select-row cursor-pointer transition hover:border-blue-400" id="srow-${id}" onclick="setActiveSelectRow('${id}')"><button onclick="event.stopPropagation(); removeEl('srow-${id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✖</button><div class="mb-3"><input type="text" class="sub-name w-full text-base font-bold border-b p-1 focus:outline-none focus:border-[#004094]" placeholder="예: 수학-보충" value="${escapeHtml(nameVal)}" oninput="updateAll()"></div><div class="flex gap-2 bg-blue-50 p-2 rounded items-center"><span class="text-xs font-bold text-[#004094]">선택:</span><input type="text" id="cnt-${id}" class="sub-count w-8 text-sm text-center bg-transparent font-bold text-[#004094]" readonly value="0"><span class="text-xs font-bold text-gray-400">회 ×</span><input type="number" class="sub-rate w-24 text-sm p-1 border rounded text-right" placeholder="단가" oninput="updateAll()"></div><div class="mt-1 text-[10px] text-blue-400 text-right">* 이 박스를 클릭하고 달력을 찍으세요</div></div>`; document.getElementById('selectList').insertAdjacentHTML('beforeend', html); setActiveSelectRow(id); return id; }
         function setActiveSelectRow(id) { activeSelectRowId = id; document.querySelectorAll('.select-row').forEach(r => r.classList.remove('active-row')); const row = document.getElementById(`srow-${id}`); if(row) row.classList.add('active-row'); updateDateContext(); }
         function removeEl(id) { document.getElementById(id).remove(); if(id.startsWith('srow-')) delete selectRowDates[id.replace('srow-', '')]; updateAll(); }
-        function downloadImage() { const captureElement = document.getElementById("captureArea"); html2canvas(captureElement, { scale: 3, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: captureElement.scrollWidth, windowHeight: captureElement.scrollHeight, onclone: (clonedDoc) => { clonedDoc.querySelector('.watermark-img').style.opacity = '0.07'; } }).then(canvas => { const link = document.createElement("a"); const name = document.getElementById('studentName').value || '학생'; const month = document.getElementById('targetMonth').value; link.download = `수강료_${name}_${month}월_에스에듀.png`; link.href = canvas.toDataURL('image/png'); link.click(); }); }
-        
-        // (이력, AI, 납부 관련 파싱 로직은 V47과 동일)
-        function processHistoryPaste() { const raw = document.getElementById('historyPasteInput').value; const lines = raw.split('\n'); historyData = []; const year = parseInt(document.getElementById('targetYear').value); lines.forEach(line => { const cols = line.split('\t'); if (cols.length < 10) return; const dateMatch = cols[1].match(/(\d+)\/(\d+)/); if (!dateMatch) return; const month = parseInt(dateMatch[1]); const day = parseInt(dateMatch[2]); const subjRaw = cols[2]; const attend = cols[4]; const teacher = cols[5]; const start = parseAccessTime(cols[6]); const end = parseAccessTime(cols[7]); const hours = parseFloat(cols[8]); const amount = parseInt(cols[10].replace(/,/g, '')) || 0; const isMakeup = subjRaw.includes('보강') || attend.includes('보강') || attend.includes('취소'); historyData.push({ year, month, day, subject: subjRaw, teacher, timeRange: `${start}~${end}`, hours, amount, isMakeup }); }); if (historyData.length > 0) { document.getElementById('targetMonth').value = historyData[0].month; alert(`${historyData.length}건의 이력이 확인되었습니다.`); } updateHistoryView(); }
-        function updateHistoryView() { if (currentTab !== 'history') return; const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); document.getElementById('calTitle').innerText = `${month}월 이력`; document.getElementById('calBadge').innerText = "이력 표시"; const calDiv = document.getElementById('calendarGrid'); calDiv.innerHTML = ''; calDiv.className = "grid grid-cols-7 text-center text-xs font-medium calendar-grid text-gray-400 mode-history"; const firstDay = new Date(year, month - 1, 1).getDay(); const lastDate = new Date(year, month, 0).getDate(); const dayCounts = {}; historyData.forEach(d => { if(d.month === month) dayCounts[d.day] = true; }); for(let i=0; i<firstDay; i++) calDiv.innerHTML += `<div></div>`; for(let i=1; i<=lastDate; i++) { let div = document.createElement('div'); div.innerText = i; if(dayCounts[i]) div.className = "history-day"; calDiv.appendChild(div); } renderHistoryReceipt(); }
-        function renderHistoryReceipt() { const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); document.getElementById('dispName').innerText = document.getElementById('studentName').value || '학생명'; document.getElementById('dispDate').innerText = `${year}년 ${month}월분`; const tbody = document.getElementById('receiptBody'); tbody.innerHTML = ''; const subjectMap = {}; let totalAmount = 0; historyData.forEach(d => { if(d.month !== month) return; const key = d.subject; if(!subjectMap[key]) subjectMap[key] = { count: 0, totalTime: 0, totalAmount: 0, isMakeup: d.isMakeup }; subjectMap[key].count++; subjectMap[key].totalTime += d.hours; subjectMap[key].totalAmount += d.amount; totalAmount += d.amount; }); for (const [subjName, data] of Object.entries(subjectMap)) { const info = parseSubjectInfo(subjName); let badges = ''; if (info.type) { let badgeClass = "badge-base type-badge text-optical-center"; if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center"; else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center"; badges += `<span class="${badgeClass}">${info.type}</span>`; } if(data.isMakeup) badges += `<span class="badge-base makeup-badge text-optical-center">보강/변경</span>`; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">총 ${data.count}회 (${data.totalTime}시간)</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.totalAmount.toLocaleString()}원</td></tr>`; } document.getElementById('dispTotal').innerText = totalAmount.toLocaleString() + '원'; renderCommonReceiptCalendar(historyData.filter(d => d.month === month).map(d => ({ day: d.day, name: `${d.isMakeup ? '[보강]' : ''}${d.subject.split('-')[0]} ${d.timeRange}`, type: 'history', rawName: d.subject, isMakeup: d.isMakeup }))); }
-
-        function processAiPrediction() { const raw = document.getElementById('aiPasteInput').value; const lines = raw.split('\n'); const year = parseInt(document.getElementById('targetYear').value); const month = parseInt(document.getElementById('targetMonth').value); let parsedData = []; lines.forEach(line => { const cols = line.split('\t'); if(cols.length < 5) return; const dateMatch = line.match(/(\d+)\/(\d+)/); if (!dateMatch) return; const numbers = cols.map(c => parseInt(c.replace(/,/g, ''))).filter(n => !isNaN(n)); const amountObj = numbers.map((val, idx) => ({ val, hasComma: cols[idx].includes(','), isId: idx === 0 && /^\d{5,6}$/.test(cols[idx].trim()) })).filter(n => !n.isId).sort((a,b) => (b.hasComma - a.hasComma) || (b.val - a.val))[0]; const amount = amountObj ? amountObj.val : 0; if(amount > 0 && !line.includes('납부') && !line.includes('결제')) { const day = parseInt(dateMatch[2]); const subjKw = cols.find(c => ['수학','영어','국어','과학'].some(k => c.includes(k))); parsedData.push({ name: subjKw || '기타 수업', amount: amount, day: day, type: 'existing' }); } }); const patterns = {}; let maxDay = 0; parsedData.forEach(d => { const key = d.name; if (!patterns[key]) patterns[key] = { days: new Set(), price: d.amount }; const date = new Date(year, month - 1, d.day); patterns[key].days.add(date.getDay()); if(d.day > maxDay) maxDay = d.day; }); const lastDate = new Date(year, month, 0).getDate(); const predictedData = []; for (let d = maxDay + 1; d <= lastDate; d++) { const targetDate = new Date(year, month - 1, d); const dayOfWeek = targetDate.getDay(); for (const [key, pat] of Object.entries(patterns)) { if (pat.days.has(dayOfWeek)) { predictedData.push({ name: key, amount: pat.price, day: d, type: 'predicted' }); } } } aiData = [...parsedData, ...predictedData].sort((a, b) => a.day - b.day); renderAiResult(); }
-        function renderAiResult() { if (currentTab !== 'ai') return; const listArea = document.getElementById('aiList'); listArea.innerHTML = ''; aiData.forEach((d, idx) => { const isPred = d.type === 'predicted'; const div = document.createElement('div'); div.className = `flex items-center justify-between p-2 rounded text-xs ${isPred ? 'bg-indigo-50 border border-indigo-100' : 'bg-white border border-gray-200'}`; div.innerHTML = `<div class="flex items-center gap-2"><span class="${isPred ? 'text-indigo-600 font-bold' : 'text-gray-600'}">${d.day}일</span><span class="${isPred ? 'text-indigo-800' : 'text-gray-800'} font-medium truncate w-40">${d.name}</span>${isPred ? '<span class="text-[9px] bg-indigo-200 text-indigo-700 px-1 rounded">예측</span>' : '<span class="text-[9px] bg-gray-200 text-gray-600 px-1 rounded">확정</span>'}</div><div class="flex items-center gap-2"><span class="font-mono font-bold">${d.amount.toLocaleString()}</span><button onclick="aiData.splice(${idx}, 1); renderAiResult();" class="text-red-400 hover:text-red-600 font-bold">X</button></div>`; listArea.appendChild(div); }); document.getElementById('aiResultArea').classList.remove('hidden'); const tbody = document.getElementById('receiptBody'); tbody.innerHTML = ''; const subjectMap = {}; let totalAmount = 0; aiData.forEach(d => { if (!subjectMap[d.name]) subjectMap[d.name] = { count: 0, amount: 0, predictedCount: 0 }; subjectMap[d.name].count++; subjectMap[d.name].amount += d.amount; if(d.type === 'predicted') subjectMap[d.name].predictedCount++; totalAmount += d.amount; }); for (const [name, data] of Object.entries(subjectMap)) { const info = parseSubjectInfo(name); let badges = ''; if (info.type) { let badgeClass = "badge-base type-badge text-optical-center"; if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center"; else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center"; badges += `<span class="${badgeClass}">${info.type}</span>`; } if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`; const timeDisplay = info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : ''; let detailText = `총 ${data.count}회`; if(data.predictedCount > 0) detailText += ` <span class="text-indigo-600 font-bold">(예측 ${data.predictedCount}회 포함)</span>`; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1 mb-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>${timeDisplay}${badges}</div><div class="text-sm text-gray-500 pl-0.5">${detailText}</div></td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${data.amount.toLocaleString()}원</td></tr>`; } const adj = parseInt(document.getElementById('aiAdjustment').value) || 0; const finalTotal = totalAmount + adj; document.getElementById('dispSubtotal').innerText = totalAmount.toLocaleString() + '원'; const adjRow = document.getElementById('dispAdjRow'); if(adjRow) { adjRow.innerHTML = `<span>이월/초과금 조정</span><span class="${adj===0?'text-gray-300':'text-red-500'}">${(adj>0?'+':'')+adj.toLocaleString()}원</span>`; } document.getElementById('dispTotal').innerText = finalTotal.toLocaleString() + '원'; renderCommonReceiptCalendar(aiData.map(d => ({ day: d.day, name: parseSubjectInfo(d.name).mainName, isPredicted: d.type === 'predicted' }))); }
-
-        function parseWithHeader(lines) { let colMap = {}; let headerFound = false; for(let i=0; i<lines.length; i++) { const cols = lines[i].split('\t'); if (cols.some(c => c.includes('반명')) && (cols.some(c => c.includes('금액')) || cols.some(c => c.includes('수강료')))) { cols.forEach((c, idx) => { if(c.includes('반명')) colMap.name = idx; else if(c.includes('■금액') || c.trim() === '금액') colMap.net = idx; else if(c.includes('일자')) colMap.date = idx; }); headerFound = true; lines.splice(0, i+1); break; } } if(!headerFound) return null; const result = []; lines.forEach(line => { if(!line.trim()) return; const cols = line.split('\t'); if(line.startsWith('요약') || cols[0].startsWith('요약')) return; const name = cols[colMap.name]; const amount = parseInt((cols[colMap.net]||'').replace(/,/g,'')) || 0; let day = 1; if(colMap.date && cols[colMap.date]) { const match = cols[colMap.date].match(/(\d+)\/(\d+)/); if(match) day = parseInt(match[2]); } if(amount > 0 && !name.includes('납부')) { result.push({ type: 'class', name, amount, day }); } }); return result; }
-        function processPaymentPaste() { const raw = document.getElementById('paymentPasteInput').value; const lines = raw.split('\n'); const tbody = document.getElementById('paymentGridBody'); tbody.innerHTML = ''; lines.forEach(line => { if(!line.trim()) return; const cols = line.split('\t'); if(line.trim().startsWith('요약') || cols[0].trim() === '요약') return; const extractNumbers = (str) => { const matches = str.match(/-?[\d,]+/g); if (!matches) return []; return matches.map(m => parseInt(m.replace(/,/g, ''))).filter(n => !isNaN(n)); }; const allNumbers = extractNumbers(line); const hasNegative = allNumbers.some(n => n < 0); const payKeywords = ['납부', '결제', '카드', '현금']; const isPaymentRow = cols.some(c => payKeywords.some(k => c.includes(k))) || hasNegative; let name = '항목 없음', amount = 0, discount = 0, type = 'class', hours = 0; const subjKw = cols.find(c => ['수학','영어','국어','과학','초과금','이월'].some(k => c.includes(k))); if (isPaymentRow) { if (subjKw && (subjKw.includes('이월') || subjKw.includes('초과금'))) { type = 'class'; name = subjKw; amount = Math.abs(Math.max(...allNumbers.map(Math.abs)) || 0); } else { type = 'payment'; name = '기납부 확인'; const neg = allNumbers.find(n => n < 0); amount = Math.abs(neg || Math.max(...allNumbers) || 0); } } else { type = 'class'; name = subjKw || '기타 수업'; amount = Math.max(...allNumbers) || 0; const timeCol = cols.find(c => c.match(/[\d.]+(시간|h|H)/)); if (timeCol) hours = parseFloat(timeCol.replace(/[^0-9.]/g, '')); } if (amount > 0) { const tr = document.createElement('tr'); tr.innerHTML = `<td><select class="grid-select" onchange="renderPaymentReceipt()"><option value="class" ${type==='class'?'selected':''}>수업</option><option value="payment" ${type==='payment'?'selected':''}>납부</option></select></td><td><input type="text" class="grid-input" value="${name}" oninput="renderPaymentReceipt()" data-hours="${hours}"></td><td><input type="number" class="grid-input text-right" value="${amount}" oninput="renderPaymentReceipt()"></td><td><input type="number" class="grid-input text-right" value="${discount}" oninput="renderPaymentReceipt()"></td><td class="grid-btn-del" onclick="this.closest('tr').remove(); renderPaymentReceipt()">X</td>`; tbody.appendChild(tr); } }); document.getElementById('paymentGridArea').classList.remove('hidden'); renderPaymentReceipt(); }
-        function renderPaymentReceipt() { const gridRows = document.querySelectorAll('#paymentGridBody tr'); const tbody = document.getElementById('receiptBody'); tbody.innerHTML = ''; let totalTuition = 0, totalPaid = 0, totalDiscount = 0; gridRows.forEach(row => { const type = row.querySelector('select').value; const nameInput = row.querySelectorAll('input')[0]; const name = nameInput.value; const hours = parseFloat(nameInput.dataset.hours) || 0; const amount = parseInt(row.querySelectorAll('input')[1].value) || 0; const discount = parseInt(row.querySelectorAll('input')[2].value) || 0; if (type === 'class') { const originalPrice = amount + discount; totalTuition += originalPrice; totalDiscount += discount; const info = parseSubjectInfo(name); let badges = ''; if (info.type) { let badgeClass = "badge-base type-badge text-optical-center"; if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center"; else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center"; badges += `<span class="${badgeClass}">${info.type}</span>`; } if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`; const timeDisplay = hours > 0 ? `<span class="time-badge badge-base text-optical-center mr-1">${hours}시간</span>` : (info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : ''); let discountText = discount > 0 ? `<div class="text-xs text-red-500 mt-0.5">할인: -${discount.toLocaleString()}</div>` : ''; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center flex-wrap gap-y-1 mb-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>${timeDisplay}${badges}</div><div class="text-sm text-gray-500 mt-1 pl-0.5">${name}</div>${discountText}</td><td class="py-3 pr-1 text-right font-mono text-lg font-black text-gray-800 align-top pt-2.5">${amount.toLocaleString()}원</td></tr>`; } else { totalPaid += amount; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 bg-purple-50"><td class="py-3 pl-1 pr-2 align-top"><div class="flex items-center gap-2"><span class="font-bold text-purple-700">기납부 확인</span></div></td><td class="py-3 pr-1 text-right font-mono text-lg font-bold text-purple-700 align-top pt-2.5">-${amount.toLocaleString()}원</td></tr>`; } }); const balance = (totalTuition - totalDiscount) - totalPaid; const discountRow = totalDiscount > 0 ? `<div class="flex justify-between text-red-500 font-bold text-lg"><span>총 할인액</span><span>-${totalDiscount.toLocaleString()}원</span></div>` : ''; const summaryHtml = `<div class="border-t-2 border-gray-200 pt-3 space-y-2 mb-6"><div class="flex justify-between text-gray-600 font-bold text-lg"><span>수강료/초과금 총액</span><span>${totalTuition.toLocaleString()}원</span></div>${discountRow}<div class="flex justify-between text-purple-600 font-bold text-lg"><span>기납부 총액</span><span>-${totalPaid.toLocaleString()}원</span></div></div><div class="flex justify-between items-center bg-gray-50 p-5 rounded-xl border border-gray-100"><span class="text-xl font-black text-gray-800">미납/차액 합계</span><span class="text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-blue-600'}">${balance.toLocaleString()}원</span></div>`; document.getElementById('priceSummaryArea').innerHTML = summaryHtml; document.getElementById('priceSummaryArea').classList.remove('hidden'); }
+        function updateAll() { if (currentTab === 'history' || currentTab === 'payment' || currentTab === 'ai' || currentTab === 'timetable') return; const name = document.getElementById('studentName').value || '학생명'; const year = document.getElementById('targetYear').value; const month = document.getElementById('targetMonth').value; document.getElementById('dispName').innerText = name; document.getElementById('dispDate').innerText = `${year}년 ${month}월분`; const adjInput = document.getElementById('adjustment'); const adj = adjInput ? (parseFloat(adjInput.value) || 0) : 0; const adjEl = document.getElementById('dispAdj'); if(adjEl) { adjEl.innerText = (adj > 0 ? '+' : '') + adj.toLocaleString() + '원'; adjEl.className = adj === 0 ? "text-gray-300 font-bold" : (adj > 0 ? "text-red-500 font-bold" : "text-[#004094] font-bold"); } const tbody = document.getElementById('receiptBody'); tbody.innerHTML = ''; let subtotal = 0; const allEvents = []; try { let selector = currentTab === 'auto' ? '#autoList .auto-row' : (currentTab === 'select' ? '#selectList .select-row' : '#manualList .manual-row'); document.querySelectorAll(selector).forEach(row => { const rawName = row.querySelector('.sub-name').value; const rate = parseFloat(row.querySelector('.sub-rate').value) || 0; let count = parseFloat(row.querySelector('.sub-count').value) || 0; let rowTotal = 0; let detailStr = ''; let manualTime = ''; if(currentTab === 'manual') { const time = parseFloat(row.querySelector('.sub-time').value) || 0; rowTotal = time * count * rate; detailStr = `${time}시간 × ${count}회(월) × ${rate.toLocaleString()}원`; manualTime = `${time}시간`; } else { rowTotal = count * rate; detailStr = `${count}회(월) × ${rate.toLocaleString()}원`; } if (rowTotal > 0 || count > 0) { subtotal += rowTotal; const info = parseSubjectInfo(rawName); if (manualTime) info.timeText = manualTime; let badges = ''; if (info.type) { let badgeClass = "badge-base type-badge text-optical-center"; if(info.type.includes('1:1')) badgeClass = "badge-base badge-1on1 text-optical-center"; else if(info.type.includes('2:1')) badgeClass = "badge-base badge-2on1 text-optical-center"; badges += `<span class="${badgeClass}">${info.type}</span>`; } if (info.teacher) badges += `<span class="badge-base teacher-badge text-optical-center">${info.teacher}</span>`; const timeDisplay = info.timeText ? `<span class="time-badge badge-base text-optical-center mr-1">${info.timeText}</span>` : ''; tbody.innerHTML += `<tr class="border-b border-dashed border-gray-200 last:border-0"><td class="py-3 pl-1 pr-2 align-top no-wrap-cell"><div class="flex items-center flex-wrap gap-y-1 mb-1"><span class="font-extrabold text-gray-800 text-lg mr-1">${info.mainName}</span>${timeDisplay}${badges}</div><div class="text-sm text-gray-500 pl-0.5">${detailStr}</div></td><td class="py-3 pr-1 text-right font-mono text-xl font-black text-gray-800 align-top pt-2.5">${rowTotal.toLocaleString()}원</td></tr>`; } if(currentTab === 'auto') { const checkedBoxes = row.querySelectorAll('.day-chk:checked'); const activeDays = Array.from(checkedBoxes).map(cb => parseInt(cb.value)); const date = new Date(year, month - 1, 1); while (date.getMonth() === month - 1) { if (activeDays.includes(date.getDay()) && !excludedDates.has(date.getDate())) { allEvents.push({day: date.getDate(), name: rawName.split('-')[0], rawName: rawName}); } date.setDate(date.getDate() + 1); } } else if(currentTab === 'select') { const rowId = row.id.replace('srow-', ''); if(selectRowDates[rowId]) { selectRowDates[rowId].forEach(d => allEvents.push({day: d, name: rawName.split('-')[0], rawName: rawName})); } } }); } catch (e) { console.error("Row Calc Error", e); } if (isNaN(subtotal)) subtotal = 0; document.getElementById('dispSubtotal').innerText = subtotal.toLocaleString() + '원'; document.getElementById('dispTotal').innerText = (subtotal + adj).toLocaleString() + '원'; renderCommonReceiptCalendar(allEvents); updateInfoText(subtotal, adj); }
     </script>
 </body>
 </html>
