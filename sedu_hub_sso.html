@@ -338,8 +338,16 @@
         linear-gradient(145deg, #d06338, #f38b57 58%, #ffc08e);
     }
 
-    .manage-tip {
+    .synchro {
       grid-column: span 1;
+      animation-delay: 0.3s;
+      background:
+        radial-gradient(circle at 78% 22%, rgba(255, 255, 255, 0.22), transparent 34%),
+        linear-gradient(145deg, #465a83, #6d80a8 56%, #9cb2d5);
+    }
+
+    .manage-tip {
+      grid-column: span 2;
       border-radius: 24px;
       border: 1px solid rgba(118, 140, 173, 0.24);
       background: linear-gradient(140deg, #fbfdff, #f0f5fb);
@@ -350,7 +358,7 @@
       gap: 9px;
       color: #2a3d53;
       animation: card-in 0.6s ease forwards;
-      animation-delay: 0.34s;
+      animation-delay: 0.36s;
       transform: translateY(10px);
       opacity: 0;
     }
@@ -550,6 +558,7 @@
       .teacher,
       .desk,
       .finance,
+      .synchro,
       .manage-tip {
         grid-column: span 1;
       }
@@ -595,6 +604,7 @@
       .teacher,
       .desk,
       .finance,
+      .synchro,
       .manage-tip {
         grid-column: span 1;
       }
@@ -658,6 +668,13 @@
           <span class="go">↗</span>
         </a>
 
+        <a class="hub-card synchro" data-key="synchroS" data-tip="강사·학생 시간표를 비교해 겹치는 시간 충돌을 빠르게 확인" href="#" target="_blank" rel="noopener noreferrer">
+          <span class="label">SYNC</span>
+          <h3>싱크로에스</h3>
+          <p>강사·학생 시간표 입력 후 충돌 여부를 빠르게 확인</p>
+          <span class="go">↗</span>
+        </a>
+
         <aside class="manage-tip">
           <strong>링크 관리 안내</strong>
           <p>이 페이지의 기본 링크는 코드에 내장되어 있어 어느 PC에서나 동일합니다. 필요 시 현재 브라우저에서만 임시 변경할 수 있습니다.</p>
@@ -702,6 +719,10 @@
           <label for="tuitionCalculatorInput">수강료 계산기 링크</label>
           <input id="tuitionCalculatorInput" type="url" placeholder="https://..." />
         </div>
+        <div class="row">
+          <label for="synchroSInput">싱크로에스 링크</label>
+          <input id="synchroSInput" type="url" placeholder="https://..." />
+        </div>
         <div class="btns">
           <button class="btn primary" type="submit">저장</button>
           <button class="btn" type="button" id="resetLinks">기본값으로 초기화</button>
@@ -719,7 +740,8 @@
         liveSchedule: "https://url.kr/jrh2sy",
         teacherPortal: "https://joo.is/seduportal",
         deskPortal: "https://script.google.com/macros/s/AKfycbxsqZ3dWMNAUvIJtF2h0tnaMBvsXRQQgrMqdNmPDMpFBarlDAwJMpZsp4ddTAoHB09c/exec",
-        tuitionCalculator: "https://whdtjd5294.github.io/"
+        tuitionCalculator: "https://whdtjd5294.github.io/",
+        synchroS: "https://synchro-s.vercel.app/synchro-s"
       };
 
       var modal = document.getElementById("settingsModal");
@@ -762,6 +784,7 @@
         document.getElementById("teacherPortalInput").value = links.teacherPortal || "";
         document.getElementById("deskPortalInput").value = links.deskPortal || "";
         document.getElementById("tuitionCalculatorInput").value = links.tuitionCalculator || "";
+        document.getElementById("synchroSInput").value = links.synchroS || "";
       }
 
       function openModal() {
@@ -807,7 +830,8 @@
           liveSchedule: document.getElementById("liveScheduleInput").value.trim(),
           teacherPortal: document.getElementById("teacherPortalInput").value.trim(),
           deskPortal: document.getElementById("deskPortalInput").value.trim(),
-          tuitionCalculator: document.getElementById("tuitionCalculatorInput").value.trim()
+          tuitionCalculator: document.getElementById("tuitionCalculatorInput").value.trim(),
+          synchroS: document.getElementById("synchroSInput").value.trim()
         };
         saveLinks(links);
         applyLinks(links);
